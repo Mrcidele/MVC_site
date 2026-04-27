@@ -1,11 +1,13 @@
 {
-  "name": "raissakuzer/task-app",
-  "description": "Mini app de tasks com estrutura MVC e roteamento em PHP",
-  "type": "project",
-  "require": {},
+  "name": "mrcidele/viacoes",
+  "description": "Sistema de Gestão de Viações",
   "autoload": {
     "psr-4": {
       "App\\": "src/"
-    }
-  }
+    },
+    "files": [
+      "src/database/db.php"
+    ]
+  },
+  "require": {}
 }

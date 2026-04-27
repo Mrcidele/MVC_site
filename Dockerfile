@@ -1,14 +1,18 @@
 FROM php:8.4-apache
 
-COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+# 1. Instalar extensões necessárias para a base de dados
+RUN docker-php-ext-install pdo pdo_mysql
 
-RUN docker-php-ext-install pdo pdo_mysql \
-    && a2enmod rewrite
+# 2. Ativar o módulo de reescrita do Apache (Obrigatório para o .htaccess e o Router funcionarem)
+RUN a2enmod rewrite
 
-# Apache -> DocumentRoot parecido com Laravel (public/)
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/src/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
-    && sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+# 3. Instalar o Composer dentro do contentor
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 4. Mudar a raiz do site (DocumentRoot) diretamente para a pasta public
+ENV APACHE_DOCUMENT_ROOT /var/www/html/src/public
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 WORKDIR /var/www/html

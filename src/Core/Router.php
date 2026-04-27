@@ -1,135 +1,64 @@
 <?php
-
 declare(strict_types=1);
-
 namespace App\Core;
 
-/** Router simples para registrar rotas GET e POST e despachar handlers. */
 final class Router
 {
-    /**
-     * @var array<string, list<array{pattern: string, regex: string, handler: callable|array{0: class-string, 1: string}}>>
-     */
     private array $routes = [];
 
-    /** Registra uma rota GET. */
-    public function get(string $pattern, callable|array $handler): void
-    {
-        $this->add('GET', $pattern, $handler);
-    }
+    public function get(string $pattern, callable|array $handler): void { $this->add('GET', $pattern, $handler); }
+    public function post(string $pattern, callable|array $handler): void { $this->add('POST', $pattern, $handler); }
+    public function put(string $pattern, callable|array $handler): void { $this->add('PUT', $pattern, $handler); }
+    public function delete(string $pattern, callable|array $handler): void { $this->add('DELETE', $pattern, $handler); }
 
-    /** Registra uma rota POST. */
-    public function post(string $pattern, callable|array $handler): void
-    {
-        $this->add('POST', $pattern, $handler);
-    }
-
-    /** Adiciona uma rota na tabela interna e converte pattern para regex. */
     private function add(string $method, string $pattern, callable|array $handler): void
     {
-        $method = strtoupper($method);
-        $pattern = $this->normalizePath($pattern);
-
-        $this->routes[$method] ??= [];
-        $this->routes[$method][] = [
-            'pattern' => $pattern,
+        $pattern = '/' . ltrim($pattern, '/');
+        $this->routes[strtoupper($method)][] = [
             'regex' => $this->patternToRegex($pattern),
             'handler' => $handler,
         ];
     }
 
-    /** Resolve a rota e executa o handler correspondente. */
     public function dispatch(string $method, string $uri): void
     {
-        $method = strtoupper($method);
+        if ($method === 'POST' && isset($_POST['_method'])) {
+            $spoofed = strtoupper($_POST['_method']);
+            if (in_array($spoofed, ['PUT', 'DELETE', 'PATCH'])) {
+                $method = $spoofed;
+            }
+        }
+
         $path = parse_url($uri, PHP_URL_PATH);
-        $path = is_string($path) ? $path : '/';
-        $path = $this->normalizePath($path);
+        $path = '/' . ltrim($path, '/');
 
-        foreach ($this->routes[$method] ?? [] as $route) {
-            $matches = [];
-            if (preg_match($route['regex'], $path, $matches) !== 1) {
-                continue;
-            }
-
-            $params = [];
-            foreach ($matches as $key => $value) {
-                if (!is_string($key)) {
-                    continue;
+        foreach ($this->routes[strtoupper($method)] ?? [] as $route) {
+            if (preg_match($route['regex'], $path, $matches)) {
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                if (isset($params['id']) && ctype_digit($params['id'])) {
+                    $params['id'] = (int) $params['id'];
                 }
 
-                if ($key === 'id' && is_string($value) && ctype_digit($value)) {
-                    $params[$key] = (int) $value;
-                    continue;
+                $handler = $route['handler'];
+                if (is_array($handler)) {
+                    $controller = new $handler[0]();
+                    $controller->{$handler[1]}(...array_values($params));
+                } else {
+                    $handler(...array_values($params));
                 }
-
-                $params[$key] = $value;
+                return;
             }
-
-            $this->invoke($route['handler'], $params);
-            return;
         }
 
         http_response_code(404);
-
-        if (str_starts_with($path, '/api')) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'ok' => false,
-                'message' => 'Route not found.',
-            ], JSON_UNESCAPED_UNICODE);
-            return;
-        }
-
         echo 'Página não encontrada.';
     }
 
-    /** @param array<string, mixed> $params */
-    private function invoke(callable|array $handler, array $params): void
-    {
-        if (is_array($handler)) {
-            [$class, $method] = $handler;
-            $controller = new $class();
-            $controller->$method(...$params);
-            return;
-        }
-
-        $handler(...$params);
-    }
-
-    /** Normaliza a URL para evitar duplicidade por barra final. */
-    private function normalizePath(string $path): string
-    {
-        $path = '/' . ltrim($path, '/');
-
-        if ($path !== '/') {
-            $path = rtrim($path, '/');
-        }
-
-        return $path;
-    }
-
-    /** Converte um pattern de rota em regex com grupos nomeados. */
     private function patternToRegex(string $pattern): string
     {
-        $tmp = preg_replace_callback(
-            '#\{([a-zA-Z_][a-zA-Z0-9_]*)\}#',
-            static fn(array $m): string => '__PARAM__' . $m[1] . '__',
-            $pattern
-        );
-
-        $quoted = preg_quote((string) $tmp, '#');
-
-        $regex = preg_replace_callback(
-            '#__PARAM__([a-zA-Z_][a-zA-Z0-9_]*)__#',
-            static function (array $m): string {
-                $name = $m[1];
-                $paramPattern = $name === 'id' ? '\\d+' : '[^/]+';
-                return '(?P<' . $name . '>' . $paramPattern . ')';
-            },
-            $quoted
-        );
-
-        return '#^' . (string) $regex . '$#';
+        $regex = preg_replace_callback('#\{([a-zA-Z0-9_]+)\}#', function ($m) {
+            return $m[1] === 'id' ? '(?P<id>\d+)' : '(?P<' . $m[1] . '>[^/]+)';
+        }, $pattern);
+        return '#^' . $regex . '/?$#';
     }
 }

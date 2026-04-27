@@ -1,26 +1,16 @@
 <?php
-
 declare(strict_types=1);
 
-/** Front controller do app. Recebe o request e envia para o Router. */
-$uri = (string)($_SERVER['REQUEST_URI'] ?? '/');
-$path = parse_url($uri, PHP_URL_PATH);
-$path = is_string($path) ? $path : '/';
-
-if (!str_starts_with($path, '/api')) {
-	session_start();
-}
-
-require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../database/db.php';
+require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 use App\Core\Router;
 
+session_start();
+
 $router = new Router();
+require_once dirname(__DIR__) . '/routes/web.php';
 
-require __DIR__ . '/../routes/web.php';
-require __DIR__ . '/../routes/api.php';
-
-$method = (string)($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = $_SERVER['REQUEST_METHOD'];
+$uri = $_SERVER['REQUEST_URI'];
 
 $router->dispatch($method, $uri);
