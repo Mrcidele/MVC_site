@@ -53,12 +53,12 @@ function sortLink(string $col, string $label, string $currentOrder, string $curr
             <thead>
             <tr>
                 <th width="60">Logo</th>
-                <th><?= sortLink('id', 'ID', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
-                <th><?= sortLink('nome', 'Nome', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
+                <th>ID</th>
+                <th>Nome</th>
                 <th>Cidade</th>
                 <th>Status</th>
-                <th><?= sortLink('criado_em', 'Criação', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
-                <th><?= sortLink('alterado_em', 'Última Edição', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
+                <th>Criação</th>
+                <th>Última Edição</th>
                 <th>Ações</th>
             </tr>
             </thead>
