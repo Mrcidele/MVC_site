@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: task_app_app
     ports:
+      - "80:80"
       - "8081:80"
     command: >
       sh -c "if [ ! -f vendor/autoload.php ]; then
@@ -16,7 +17,7 @@ services:
       - ./:/var/www/html
     environment:
       DB_HOST: db
-      DB_NAME: tasks
+      DB_NAME: viacoes
       DB_USER: app
       DB_PASSWORD: app123
     depends_on:

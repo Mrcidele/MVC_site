@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Core\View;
@@ -20,6 +21,9 @@ final class HomeController
         $viacoesAtivas = [];
         $erroConexao = false;
 
+        // A barra invertida (\) avisa que a função está no escopo global (db.php)
+        $cacheHit = \getCachedData('viacoes_ativas') !== null;
+
         try {
             $viacoesAtivas = $this->viacoes->all('', 'ativo', 'nome', 'ASC');
         } catch (Exception $e) {
@@ -28,7 +32,8 @@ final class HomeController
 
         View::render('home', [
             'viacoesAtivas' => $viacoesAtivas,
-            'erroConexao' => $erroConexao
+            'erroConexao'   => $erroConexao,
+            'cacheHit'      => $cacheHit
         ]);
     }
 }

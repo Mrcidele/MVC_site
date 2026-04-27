@@ -2,12 +2,15 @@
 use App\Core\View;
 $flash = View::pullFlash();
 
+/**
+ * Gera um link de ordenação com ícone
+ */
 function sortLink(string $col, string $label, string $currentOrder, string $currentDir, array $filtros): string {
     $newDir = ($currentOrder === $col && $currentDir === 'ASC') ? 'desc' : 'asc';
     $params = array_merge($filtros, ['order' => $col, 'dir' => $newDir]);
     $url = '?' . http_build_query($params);
     $icon = $currentOrder === $col ? ($currentDir === 'ASC' ? ' ▲' : ' ▼') : ' ⇅';
-    return "<a href=\"$url\" class=\"sort-link\">$label<span style=\"font-size:10px\">$icon</span></a>";
+    return "<a href=\"$url\" class=\"sort-link\">$label<span style=\"font-size:10px; margin-left:5px;\">$icon</span></a>";
 }
 ?>
 <!DOCTYPE html>
@@ -35,11 +38,11 @@ function sortLink(string $col, string $label, string $currentOrder, string $curr
 
     <div class="admin-card">
         <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="nome" value="<?= htmlspecialchars($filtros['busca']) ?>" placeholder="Buscar por nome..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1;">
+            <input type="text" name="nome" value="<?= htmlspecialchars($filtros['busca'] ?? '') ?>" placeholder="Buscar por nome..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1;">
             <select name="status" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                 <option value="">Todos os Status</option>
-                <option value="ativo" <?= $filtros['status'] === 'ativo' ? 'selected' : '' ?>>Ativos</option>
-                <option value="inativo" <?= $filtros['status'] === 'inativo' ? 'selected' : '' ?>>Inativos</option>
+                <option value="ativo" <?= ($filtros['status'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativos</option>
+                <option value="inativo" <?= ($filtros['status'] ?? '') === 'inativo' ? 'selected' : '' ?>>Inativos</option>
             </select>
             <button type="submit" class="btn-primary" style="padding: 9px 20px;">Filtrar</button>
         </form>
@@ -52,9 +55,10 @@ function sortLink(string $col, string $label, string $currentOrder, string $curr
                 <th width="60">Logo</th>
                 <th><?= sortLink('id', 'ID', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
                 <th><?= sortLink('nome', 'Nome', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
-                <th>URL</th>
                 <th>Cidade</th>
                 <th>Status</th>
+                <th><?= sortLink('criado_em', 'Criação', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
+                <th><?= sortLink('alterado_em', 'Última Edição', $filtros['ordem'], $filtros['dir'], $filtros) ?></th>
                 <th>Ações</th>
             </tr>
             </thead>
@@ -70,15 +74,32 @@ function sortLink(string $col, string $label, string $currentOrder, string $curr
                     </td>
                     <td><?= $v->id ?></td>
                     <td><strong><?= htmlspecialchars($v->nome) ?></strong></td>
-                    <td><a href="<?= htmlspecialchars($v->url) ?>" target="_blank" style="color:#0d6efd; text-decoration:none;"><?= htmlspecialchars($v->url) ?></a></td>
                     <td><?= htmlspecialchars($v->cidade) ?></td>
                     <td><span class="badge <?= $v->status ?>"><?= ucfirst($v->status) ?></span></td>
+
+                    <td style="font-size: 0.85rem; color: #666;">
+                        <?= $v->criadoEm ? date('d/m/Y H:i', strtotime($v->criadoEm)) : '---' ?>
+                    </td>
+
+                    <td style="font-size: 0.85rem; color: #666;">
+                        <?php
+                        // Só mostra a data de alteração se ela for diferente da criação
+                        if ($v->alteradoEm && $v->alteradoEm !== $v->criadoEm) {
+                            echo date('d/m/Y H:i', strtotime($v->alteradoEm));
+                        } else {
+                            echo '<span style="color:#ccc">Sem edições</span>';
+                        }
+                        ?>
+                    </td>
+
                     <td>
-                        <a href="/admin/viacoes/<?= $v->id ?>/edit" class="btn-edit">Editar</a>
-                        <form method="POST" action="/admin/viacoes/<?= $v->id ?>" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta viação?')">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="btn-delete">Excluir</button>
-                        </form>
+                        <div style="display:flex; gap: 5px;">
+                            <a href="/admin/viacoes/<?= $v->id ?>/edit" class="btn-edit">Editar</a>
+                            <form method="POST" action="/admin/viacoes/<?= $v->id ?>" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta viação?')">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn-delete">Excluir</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; ?>

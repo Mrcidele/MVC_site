@@ -1,86 +1,76 @@
-# Task App (mini Laravel-like em PHP)
+# Sistema de Gestao de Viacoes
 
-Projeto de referência para estagiários praticarem uma arquitetura mais organizada antes de entrar em Laravel.
+Projeto em PHP com arquitetura MVC, painel administrativo e fluxo completo de CRUD para viações de onibus, incluindo upload de logo, filtro/ordenacao, historico de alteracoes e cache simples para a Home.
 
-Fluxo principal do app:
+## Visao geral
 
-- Front Controller (`src/public/index.php`)
-- Router (`src/Core/Router.php`)
-- Controller (`src/Controllers/TaskController.php`)
-- Service (`src/Services/TaskService.php`)
-- Model/DTO (`src/Models/Task.php`)
-- Views (`src/views/*.php`)
+O sistema foi estruturado para separar responsabilidades por camada:
 
-## Objetivo didático
+- `public/index.php`: front controller web.
+- `Core/Router.php`: registro e despacho de rotas com suporte a parametros e method spoofing (`_method`).
+- `Controllers/*`: controle do fluxo HTTP.
+- `Services/*`: regras de negocio.
+- `Repositories/*`: acesso a dados via PDO.
+- `Models/*`: objetos de dominio.
+- `views/*`: renderizacao das telas.
 
-Este projeto demonstra, de forma pequena e funcional:
+## Funcionalidades principais
 
-- Roteamento com parâmetros (`/tasks/{id}/edit`)
-- Separação de responsabilidades por camadas
-- CRUD completo com MySQL
-- Flash message e padrão PRG (Post/Redirect/Get)
-- Estrutura compatível com PSR-4 para reduzir warnings de IDE
+- Home com layout estilo portal de passagens, exibindo viações ativas dinamicamente.
+- Painel ADM de viações com:
+  - listagem,
+  - busca por nome,
+  - filtro por status,
+  - ordenacao por coluna,
+  - cadastro,
+  - edicao,
+  - exclusao.
+- Upload de logo da viação (`JPG`, `PNG`, `WEBP`).
+- Historico de alteracoes (criacao, edicao e exclusao).
+- Cache em arquivo JSON para consulta principal da Home (`src/cache/viacoes_ativas.json`).
 
-## Stack
+## Tecnologias
 
-- PHP 8.4 + Apache (Docker)
-- MySQL 8
-- Composer 2 (no container) para autoload PSR-4
+- PHP `8.4` + Apache
+- MySQL `8.0`
+- Docker + Docker Compose
+- Composer (autoload PSR-4)
 
-## Estrutura do projeto
+## Estrutura de pastas
 
 ```text
-task-app/
-	docker-compose.yml
-	Dockerfile
-	composer.json
-
-	src/
-		public/
-			index.php
-			app.css
-
-		Core/
-			Router.php
-			View.php
-
-		Controllers/
-			TaskController.php
-
-		Services/
-			TaskService.php
-
-		Models/
-			Task.php
-
-		views/
-			_layout.php
-			index.php
-			create.php
-			edit.php
-
-		routes/
-			web.php
-
-		database/
-			db.php
-			init.sql
+php-task-app/
+  docker-compose.yml
+  Dockerfile
+  composer.json
+  src/
+    Controllers/
+    Core/
+    database/
+    Models/
+    Repositories/
+    Services/
+    Validators/
+    public/
+    routes/
+    views/
+    cache/
 ```
 
-## Como rodar
+## Como executar
 
 1. Suba os containers:
 
 ```bash
-cd task-app
+cd /home/qp-1130257/Documentos/php-task-app
 docker compose up --build -d
 ```
 
-Na inicializacao do container `app`, o Composer gera `vendor/autoload.php` automaticamente.
+2. Acesse no navegador:
 
-2. Acesse:
-
-- http://localhost:8081/tasks
+- Home: `http://localhost/` (tambem disponivel em `http://localhost:8081/`)
+- ADM viações: `http://localhost/admin/viacoes`
+- Historico: `http://localhost/admin/historico`
 
 3. Para parar:
 
@@ -88,112 +78,55 @@ Na inicializacao do container `app`, o Composer gera `vendor/autoload.php` autom
 docker compose down
 ```
 
-## Rotas
+## Rotas web
 
-- `GET /` -> lista tasks
-- `GET /tasks` -> lista tasks
-- `GET /tasks/create` -> formulário de criação
-- `POST /tasks` -> cria task
-- `GET /tasks/{id}/edit` -> formulário de edição
-- `POST /tasks/{id}` -> atualiza task
-- `POST /tasks/{id}/delete` -> remove task
-
-## API JSON
-
-- `GET /api` -> retorna todas as tasks em JSON
-- `GET /api/tasks` -> retorna todas as tasks em JSON
-- `GET /api/tasks/1` -> retorna uma task especifica
-
-### Teste rapido (com Docker e projeto ja rodando)
-
-Se os containers ja estao ativos, rode direto no terminal:
-
-```bash
-curl -s http://localhost:8081/api
-curl -s http://localhost:8081/api/tasks
-curl -s http://localhost:8081/api/tasks/1
-```
-
-Para visualizar formatado (se tiver `jq`):
-
-```bash
-curl -s http://localhost:8081/api/tasks | jq
-```
-
-### Teste pela IDE com arquivo HTTP
-
-O projeto inclui o arquivo [requests.http](requests.http) com chamadas prontas para a API.
-
-Como usar no VS Code:
-
-1. Abra o arquivo [requests.http](requests.http).
-2. Clique em Send Request acima da requisicao que deseja executar.
-3. Veja a resposta no painel lateral.
-
-Como usar no PhpStorm:
-
-1. Abra o arquivo [requests.http](requests.http).
-2. Clique no icone de play ao lado da requisicao.
-3. Confira status code, headers e JSON retornado.
-
-Dica: altere a variavel @baseUrl no topo do arquivo se sua porta for diferente de 8081.
-
-Exemplo de resposta:
-
-```json
-{
-	"ok": true,
-	"count": 3,
-	"data": [
-		{
-			"id": 1,
-			"title": "Estudar roteamento",
-			"description": "Implementar um Router simples (GET/POST + params).",
-			"is_done": false,
-			"created_at": "2026-04-23 10:00:00",
-			"updated_at": null
-		}
-	]
-}
-```
+- `GET /` -> Home (`HomeController@index`)
+- `GET /admin/viacoes` -> Lista viações
+- `GET /admin/viacoes/create` -> Formulario de cadastro
+- `POST /admin/viacoes` -> Criar viação
+- `GET /admin/viacoes/{id}/edit` -> Formulario de edicao
+- `PUT /admin/viacoes/{id}` -> Atualizar viação
+- `DELETE /admin/viacoes/{id}` -> Excluir viação
+- `GET /admin/historico` -> Listar historico
 
 ## Banco de dados
 
-- O MySQL é iniciado via Docker Compose.
-- A tabela `tasks` é criada automaticamente no primeiro start pelo `src/database/init.sql`.
+Script: `src/database/init.sql`
 
-Reset completo (recria banco e dados seed):
+Tabelas criadas:
 
-```bash
-docker compose down -v
-docker compose up --build -d
-```
+- `viacoes`
+- `viacoes_historico`
 
-## PSR-4 e IDE
+Conexao PDO e utilitarios de cache ficam em `src/database/db.php`.
 
-Para reduzir mensagens como "Namespace name doesn't match the PSR-0/PSR-4 project structure":
+## Cache
 
-- Namespaces usam `App\\...`
-- Estrutura de classes está em `src/Core`, `src/Controllers`, `src/Services`, `src/Models`
-- `composer.json` define:
+O cache atual foi implementado para acelerar a consulta padrao da Home (viações ativas ordenadas por nome):
+
+- leitura: `getCachedData('viacoes_ativas')`
+- escrita: `setCachedData('viacoes_ativas', ...)`
+- invalidacao automatica ao criar/editar/excluir viação
+- TTL padrao: `300s`
+
+
+## Autoload (PSR-4)
+
+Definido em `composer.json`:
 
 ```json
 "autoload": {
-	"psr-4": {
-		"App\\": "src/"
-	}
+  "psr-4": {
+    "App\\": "src/"
+  },
+  "files": [
+    "src/database/db.php"
+  ]
 }
 ```
 
-Apos mudancas de namespace/estrutura, rode:
+Se alterar namespaces/estrutura:
 
 ```bash
-composer dump-autoload --working-dir=.
+docker compose exec app composer dump-autoload -o
 ```
-
-## Próximos passos sugeridos para estudo
-
-- Adicionar validação mais robusta (camada dedicada)
-- Introduzir método HTTP `PUT/DELETE` com spoofing de `_method`
-- Criar testes de integração para o fluxo de rotas
-- Extrair camada de repositório para separar SQL da regra de negócio

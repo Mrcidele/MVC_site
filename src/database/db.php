@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+define('CACHE_DIR', dirname(__DIR__) . '/cache/');
+define('CACHE_TTL', 300);
+
+// Nova função padrão do MVC
 function getPdo(): PDO
 {
     static $pdo = null;
@@ -12,16 +16,38 @@ function getPdo(): PDO
     $pass = 'app123';
     $dsn = "mysql:host={$host};dbname={$db};charset=utf8mb4";
 
-    $options = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ];
-
     try {
-        $pdo = new PDO($dsn, $user, $pass, $options);
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
         $pdo->exec("SET time_zone='-03:00'");
         return $pdo;
     } catch (PDOException $e) {
-        die('Erro na conexão com o banco: ' . $e->getMessage());
+        die('Erro na conexão com a base de dados: ' . $e->getMessage());
     }
+}
+
+// Mantemos a função antiga para não quebrar o teu código original
+function abrirConexao(): PDO {
+    return getPdo();
+}
+
+// === FUNÇÕES DE CACHE ===
+function getCachedData(string $key): ?array {
+    $file = CACHE_DIR . $key . '.json';
+    if (!file_exists($file)) return null;
+    if ((time() - filemtime($file)) > CACHE_TTL) return null;
+
+    return json_decode(file_get_contents($file), true);
+}
+
+function setCachedData(string $key, array $data): void {
+    if (!is_dir(CACHE_DIR)) mkdir(CACHE_DIR, 0755, true);
+    file_put_contents(CACHE_DIR . $key . '.json', json_encode($data, JSON_UNESCAPED_UNICODE));
+}
+
+function invalidateCache(string $key): void {
+    $file = CACHE_DIR . $key . '.json';
+    if (file_exists($file)) unlink($file);
 }
