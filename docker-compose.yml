@@ -27,7 +27,7 @@ services:
     container_name: task_app_db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: tasks
+      MYSQL_DATABASE: viacoes
       MYSQL_USER: app
       MYSQL_PASSWORD: app123
       MYSQL_ROOT_PASSWORD: root123
