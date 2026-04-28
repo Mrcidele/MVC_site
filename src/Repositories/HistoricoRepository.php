@@ -5,6 +5,8 @@ namespace App\Repositories;
 use App\Models\Historico;
 use PDO;
 
+
+// Repositório de Auditoria: Gerencia o log de eventos do sistema.
 final class HistoricoRepository
 {
     private PDO $pdo;
@@ -14,6 +16,7 @@ final class HistoricoRepository
         $this->pdo = $pdo ?? \getPdo();
     }
 
+    // Recupera todos os registros de auditoria em ordem cronológica inversa.
     public function all(): array
     {
         $stmt = $this->pdo->query("SELECT * FROM viacoes_historico ORDER BY data_hora DESC");
@@ -26,6 +29,7 @@ final class HistoricoRepository
         ), $stmt->fetchAll());
     }
 
+    // Registra um novo evento de auditoria no banco de dados.
     public function log(?int $viacaoId, string $acao, string $detalhes): void
     {
         $stmt = $this->pdo->prepare("INSERT INTO viacoes_historico (viacao_id, acao, detalhes) VALUES (?, ?, ?)");

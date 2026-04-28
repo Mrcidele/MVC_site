@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
+// Configurações de infraestrutura
 define('CACHE_DIR', dirname(__DIR__) . '/cache/');
 define('CACHE_TTL', 300);
 
-// Nova função padrão do MVC
+// Singleton PDO: Garante uma única conexão TCP por requisição.
 function getPdo(): PDO
 {
     static $pdo = null;
@@ -24,16 +25,18 @@ function getPdo(): PDO
         $pdo->exec("SET time_zone='-03:00'");
         return $pdo;
     } catch (PDOException $e) {
+        // Logar o erro e exibir uma página amigável
         die('Erro na conexão com a base de dados: ' . $e->getMessage());
     }
 }
 
-// Mantemos a função antiga para não quebrar o teu código original
+// Mantemos a função antiga para não quebrar
 function abrirConexao(): PDO {
     return getPdo();
 }
 
-// === FUNÇÕES DE CACHE ===
+// SISTEMA DE CACHE EM ARQUIVO.
+// Recupera dados do cache JSON.
 function getCachedData(string $key): ?array {
     $file = CACHE_DIR . $key . '.json';
     if (!file_exists($file)) return null;
@@ -42,11 +45,13 @@ function getCachedData(string $key): ?array {
     return json_decode(file_get_contents($file), true);
 }
 
+// Salva dados em cache JSON.
 function setCachedData(string $key, array $data): void {
     if (!is_dir(CACHE_DIR)) mkdir(CACHE_DIR, 0755, true);
     file_put_contents(CACHE_DIR . $key . '.json', json_encode($data, JSON_UNESCAPED_UNICODE));
 }
 
+// Remove o cache (Invalidação).
 function invalidateCache(string $key): void {
     $file = CACHE_DIR . $key . '.json';
     if (file_exists($file)) unlink($file);

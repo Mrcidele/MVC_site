@@ -2,8 +2,11 @@
 declare(strict_types=1);
 namespace App\Validators;
 
+// Validador de Domínio: Garante a integridade dos dados da Viação.
 final class ViacaoValidator
 {
+    // Valida os campos obrigatórios e o formato da URL.
+    // Retorna array vazio se os dados forem válidos.
     public function validate(array $data): array
     {
         $errors = [];

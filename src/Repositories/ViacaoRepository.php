@@ -6,6 +6,7 @@ namespace App\Repositories;
 use App\Models\Viacao;
 use PDO;
 
+// Repositório: Responsável exclusivamente pela persistência de dados no MySQL.
 final class ViacaoRepository {
     private PDO $pdo;
 
@@ -13,6 +14,7 @@ final class ViacaoRepository {
         $this->pdo = $pdo ?? \getPDO();
     }
 
+    // Busca filtrada e ordenada.
     public function all(string $busca, string $status, string $ordem, string $dir): array{
         $sql = "SELECT * FROM viacoes WHERE 1=1";
         $params = [];
@@ -26,6 +28,7 @@ final class ViacaoRepository {
             $params['status'] = $status;
         }
 
+        // Whitelist de segurança para evitar SQL Injection via ORDER BY
         $colunas = ['id', 'nome', 'criado_em', 'alterado_em'];
         $ordem = in_array($ordem, $colunas) ? $ordem : 'nome';
         $dir = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Models;
 
+// Entidade Viacao: Representa o objeto de negócio imutável.
 final class Viacao
 {
     public function __construct(
@@ -15,6 +16,7 @@ final class Viacao
         public ?string $alteradoEm,
     ) {}
 
+    // Converte o array bruto do PDO em um objeto tipado.
     public static function fromRow(array $row): self
     {
         return new self(

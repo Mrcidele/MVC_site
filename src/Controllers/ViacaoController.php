@@ -6,6 +6,7 @@ use App\Core\View;
 use App\Services\ViacaoService;
 use Exception;
 
+//Controller Administrativo para Gestão de Viações
 final class ViacaoController
 {
     private ViacaoService $viacoes;
@@ -15,6 +16,7 @@ final class ViacaoController
         $this->viacoes = $viacoes ?? new ViacaoService();
     }
 
+    //Listagem com filtros e ordenação
     public function index(): void
     {
         $busca = trim((string) ($_GET['nome'] ?? ''));
@@ -28,6 +30,7 @@ final class ViacaoController
         ]);
     }
 
+    //Formulário de criação
     public function create(): void
     {
         View::render('admin/viacoes/create', [
@@ -36,6 +39,7 @@ final class ViacaoController
         ]);
     }
 
+    //Processa a criação (POST)
     public function store(): void
     {
         try {
@@ -52,6 +56,7 @@ final class ViacaoController
         }
     }
 
+    //Formulário de edição
     public function edit(int $id): void
     {
         $viacao = $this->viacoes->find($id);
@@ -68,6 +73,7 @@ final class ViacaoController
         ]);
     }
 
+    //Processa a atualização (PUT)
     public function update(int $id): void
     {
         try {
@@ -86,6 +92,7 @@ final class ViacaoController
         }
     }
 
+    //Remove uma viação (DELETE)
     public function destroy(int $id): void
     {
         $this->viacoes->delete($id);

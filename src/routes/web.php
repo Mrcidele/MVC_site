@@ -3,10 +3,12 @@ use App\Controllers\HomeController;
 use App\Controllers\ViacaoController;
 use App\Controllers\HistoricoController;
 
+/** @var \App\Core\Router $router */
+
 // Home
 $router->get('/', [HomeController::class, 'index']);
 
-// Admin - Viações
+// Admin - Viações (CRUD)
 $router->get('/admin/viacoes', [ViacaoController::class, 'index']);
 $router->get('/admin/viacoes/create', [ViacaoController::class, 'create']);
 $router->post('/admin/viacoes', [ViacaoController::class, 'store']);

@@ -2,6 +2,8 @@
 declare(strict_types=1);
 namespace App\Core;
 
+
+// Engine de Roteamento: Mapeia URIs para Controllers.
 final class Router
 {
     private array $routes = [];
@@ -20,6 +22,7 @@ final class Router
         ];
     }
 
+    // Resolve a requisição e invoca o handler correspondente.
     public function dispatch(string $method, string $uri): void
     {
         if ($method === 'POST' && isset($_POST['_method'])) {
@@ -35,6 +38,7 @@ final class Router
         foreach ($this->routes[strtoupper($method)] ?? [] as $route) {
             if (preg_match($route['regex'], $path, $matches)) {
                 $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                // Normalização de tipos (Casting)
                 if (isset($params['id']) && ctype_digit($params['id'])) {
                     $params['id'] = (int) $params['id'];
                 }
@@ -54,6 +58,7 @@ final class Router
         echo 'Página não encontrada.';
     }
 
+    // Converte padrões como {id} para Expressões Regulares
     private function patternToRegex(string $pattern): string
     {
         $regex = preg_replace_callback('#\{([a-zA-Z0-9_]+)\}#', function ($m) {

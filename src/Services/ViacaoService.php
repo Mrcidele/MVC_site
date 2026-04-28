@@ -8,6 +8,7 @@ use App\Repositories\HistoricoRepository;
 use App\Validators\ViacaoValidator;
 use Exception;
 
+// Camada de Serviço: Orquestra regras de negócio, persistência e cache.
 final class ViacaoService
 {
     private ViacaoRepository $repo;
@@ -24,6 +25,7 @@ final class ViacaoService
         $this->historico = $historico ?? new HistoricoRepository();
     }
 
+    // Recupera viações com lógica de cache integrada para a Home.
     public function all(string $busca, string $status, string $ordem, string $dir): array
     {
         // Verifica se é a consulta padrão da Home para usar o cache
@@ -55,6 +57,7 @@ final class ViacaoService
         return $this->repo->find($id);
     }
 
+    // Criação de viação com validação, upload e auditoria.
     public function create(array $data, ?array $fileLogo = null): int
     {
         $errors = $this->validator->validate($data);
@@ -77,6 +80,7 @@ final class ViacaoService
         return $id;
     }
 
+    // Atualização com detecção de mudanças para o histórico.
     public function update(int $id, array $data, ?array $fileLogo = null): void
     {
         $old = $this->repo->find($id);
@@ -92,6 +96,7 @@ final class ViacaoService
             'status' => ($data['status'] ?? '') === 'inativo' ? 'inativo' : 'ativo',
         ];
 
+        // Mapeia o que mudou para salvar no histórico
         $mudancas = [];
         if ($old->nome !== $updateData['nome']) $mudancas[] = ['campo' => 'Nome', 'de' => $old->nome, 'para' => $updateData['nome']];
         if ($old->url !== $updateData['url']) $mudancas[] = ['campo' => 'URL', 'de' => $old->url, 'para' => $updateData['url']];
@@ -129,6 +134,7 @@ final class ViacaoService
         }
     }
 
+    // Processamento interno de arquivos de imagem.
     private function handleUpload(?array $file): ?string
     {
         if ($file === null || $file['error'] !== UPLOAD_ERR_OK) return null;
