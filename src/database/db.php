@@ -17,17 +17,15 @@ function getPdo(): PDO
     $pass = 'app123';
     $dsn = "mysql:host={$host};dbname={$db};charset=utf8mb4";
 
-    try {
-        $pdo = new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-        $pdo->exec("SET time_zone='-03:00'");
-        return $pdo;
-    } catch (PDOException $e) {
-        // Logar o erro e exibir uma página amigável
-        die('Erro na conexão com a base de dados: ' . $e->getMessage());
-    }
+    // Sem o try/catch isolado aqui, qualquer erro de conexão (PDOException)
+    // será automaticamente capturado pelo set_exception_handler do index.php.
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+
+    $pdo->exec("SET time_zone='-03:00'");
+    return $pdo;
 }
 
 // Mantemos a função antiga para não quebrar
