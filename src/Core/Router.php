@@ -2,7 +2,6 @@
 declare(strict_types=1);
 namespace App\Core;
 
-
 // Engine de Roteamento: Mapeia URIs para Controllers.
 final class Router
 {
@@ -25,40 +24,62 @@ final class Router
     // Resolve a requisição e invoca o handler correspondente.
     public function dispatch(string $method, string $uri): void
     {
-        if ($method === 'POST' && isset($_POST['_method'])) {
-            $spoofed = strtoupper($_POST['_method']);
-            if (in_array($spoofed, ['PUT', 'DELETE', 'PATCH'])) {
-                $method = $spoofed;
-            }
+        $method = $this->resolveMethod($method);
+        $path = '/' . ltrim((string) parse_url($uri, PHP_URL_PATH), '/');
+        $routes = $this->routes[$method] ?? [];
+
+        if (empty($routes)) {
+            $this->abortNotFound();
+            return;
         }
 
-        $path = parse_url($uri, PHP_URL_PATH);
-        $path = '/' . ltrim($path, '/');
-
-        foreach ($this->routes[strtoupper($method)] ?? [] as $route) {
-            if (preg_match($route['regex'], $path, $matches)) {
-                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
-                // Normalização de tipos (Casting)
-                if (isset($params['id']) && ctype_digit($params['id'])) {
-                    $params['id'] = (int) $params['id'];
-                }
-
-                $handler = $route['handler'];
-                if (is_array($handler)) {
-                    $controller = new $handler[0]();
-                    $controller->{$handler[1]}(...array_values($params));
-                } else {
-                    $handler(...array_values($params));
-                }
-                return;
+        foreach ($routes as $route) {
+            if (!preg_match($route['regex'], $path, $matches)) {
+                continue;
             }
+
+            $this->invokeHandler($route['handler'], $matches);
+            return;
         }
 
-        http_response_code(404);
-        echo 'Página não encontrada.';
+        $this->abortNotFound();
     }
 
-    // Converte padrões como {id} para Expressões Regulares
+    private function resolveMethod(string $method): string
+    {
+        if ($method === 'POST' && isset($_POST['_method'])) {
+            $spoofed = strtoupper($_POST['_method']);
+            if (in_array($spoofed, ['PUT', 'DELETE', 'PATCH'], true)) {
+                return $spoofed;
+            }
+        }
+        return strtoupper($method);
+    }
+
+    private function invokeHandler(callable|array $handler, array $matches): void
+    {
+        $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+
+        if (isset($params['id']) && ctype_digit($params['id'])) {
+            $params['id'] = (int) $params['id'];
+        }
+
+        if (is_array($handler)) {
+            $controller = new $handler[0]();
+            $controller->{$handler[1]}(...array_values($params));
+            return;
+        }
+
+        $handler(...array_values($params));
+    }
+
+    private function abortNotFound(): void
+    {
+        http_response_code(404);
+        echo 'Página não encontrada.';
+        exit; // Garante que a execução morre aqui
+    }
+
     private function patternToRegex(string $pattern): string
     {
         $regex = preg_replace_callback('#\{([a-zA-Z0-9_]+)\}#', function ($m) {

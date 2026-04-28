@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 namespace App\Controllers;
 
 use App\Core\View;
@@ -20,23 +19,24 @@ final class HomeController
     // Renderiza a página inicial exibindo as viações ativas.
     public function index(): void
     {
-        $viacoesAtivas = [];
-        $erroConexao = false;
-
-        // Verifica o status do cache
         $cacheHit = \getCachedData('viacoes_ativas') !== null;
 
         try {
             $viacoesAtivas = $this->viacoes->all('', 'ativo', 'nome', 'ASC');
-        } catch (Exception $e) {
-            // Garante que a página não quebre caso o banco fique indisponível
-            $erroConexao = true;
-        }
 
-        View::render('home', [
-            'viacoesAtivas' => $viacoesAtivas,
-            'erroConexao'   => $erroConexao,
-            'cacheHit'      => $cacheHit
-        ]);
+            View::render('home', [
+                'viacoesAtivas' => $viacoesAtivas,
+                'erroConexao'   => false,
+                'cacheHit'      => $cacheHit
+            ]);
+            return;
+
+        } catch (Exception $e) {
+            View::render('home', [
+                'viacoesAtivas' => [],
+                'erroConexao'   => true,
+                'cacheHit'      => $cacheHit
+            ]);
+        }
     }
 }

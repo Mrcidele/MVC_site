@@ -43,8 +43,7 @@ final class ViacaoController
     public function store(): void
     {
         try {
-            $file = isset($_FILES['logo']) && $_FILES['logo']['error'] !== UPLOAD_ERR_NO_FILE ? $_FILES['logo'] : null;
-            $this->viacoes->create($_POST, $file);
+            $this->viacoes->create($_POST, $this->getUploadedLogo());
 
             View::flash('success', "Viação cadastrada com sucesso!");
             View::redirect('/admin/viacoes');
@@ -53,6 +52,7 @@ final class ViacaoController
                 'errors' => explode('|', $e->getMessage()),
                 'old' => $_POST
             ]);
+            return;
         }
     }
 
@@ -60,10 +60,11 @@ final class ViacaoController
     public function edit(int $id): void
     {
         $viacao = $this->viacoes->find($id);
+
         if ($viacao === null) {
             http_response_code(404);
             echo "Viação não encontrada.";
-            return;
+            exit;
         }
 
         View::render('admin/viacoes/edit', [
@@ -77,18 +78,19 @@ final class ViacaoController
     public function update(int $id): void
     {
         try {
-            $file = isset($_FILES['logo']) && $_FILES['logo']['error'] !== UPLOAD_ERR_NO_FILE ? $_FILES['logo'] : null;
-            $this->viacoes->update($id, $_POST, $file);
+            $this->viacoes->update($id, $_POST, $this->getUploadedLogo());
 
             View::flash('success', "Viação atualizada com sucesso!");
             View::redirect('/admin/viacoes');
         } catch (Exception $e) {
             $viacao = $this->viacoes->find($id);
+
             View::render('admin/viacoes/edit', [
                 'viacao' => $viacao,
                 'errors' => explode('|', $e->getMessage()),
                 'old' => $_POST
             ]);
+            return;
         }
     }
 
@@ -98,5 +100,13 @@ final class ViacaoController
         $this->viacoes->delete($id);
         View::flash('success', "Viação removida com sucesso!");
         View::redirect('/admin/viacoes');
+    }
+
+    private function getUploadedLogo(): ?array
+    {
+        if (!isset($_FILES['logo']) || $_FILES['logo']['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+        return $_FILES['logo'];
     }
 }

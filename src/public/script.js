@@ -1,12 +1,7 @@
 // Array para AutoComplete
 const cidades = [
-    "Cabo Frio, RJ",
-    "Rio de Janeiro, RJ",
-    "São Paulo, SP",
-    "Belo Horizonte, MG",
-    "Curitiba, PR",
-    "Arraial do Cabo, RJ",
-    "Búzios, RJ"
+    "Cabo Frio, RJ", "Rio de Janeiro, RJ", "São Paulo, SP",
+    "Belo Horizonte, MG", "Curitiba, PR", "Arraial do Cabo, RJ", "Búzios, RJ"
 ];
 
 // Função para configurar o autocomplete
@@ -20,30 +15,32 @@ function configurarAutocomplete(idInput, idLista) {
         const valorDigitado = this.value.toLowerCase();
         lista.innerHTML = '';
 
-        if (valorDigitado.length > 0) {
-            const sugestoes = cidades.filter(cidade =>
-                cidade.toLowerCase().includes(valorDigitado)
-            );
-
-            if (sugestoes.length > 0) {
-                lista.style.display = 'block';
-                sugestoes.forEach(cidade => {
-                    const li = document.createElement('li');
-                    li.textContent = cidade;
-
-                    li.addEventListener('click', () => {
-                        input.value = cidade;
-                        lista.style.display = 'none';
-                    });
-
-                    lista.appendChild(li);
-                });
-            } else {
-                lista.style.display = 'none';
-            }
-        } else {
+        if (valorDigitado.length === 0) {
             lista.style.display = 'none';
+            return;
         }
+
+        const sugestoes = cidades.filter(cidade =>
+            cidade.toLowerCase().includes(valorDigitado)
+        );
+
+        if (sugestoes.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+
+        lista.style.display = 'block';
+        sugestoes.forEach(cidade => {
+            const li = document.createElement('li');
+            li.textContent = cidade;
+
+            li.addEventListener('click', () => {
+                input.value = cidade;
+                lista.style.display = 'none';
+            });
+
+            lista.appendChild(li);
+        });
     });
 
     document.addEventListener('click', function(e) {

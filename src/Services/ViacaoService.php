@@ -28,23 +28,18 @@ final class ViacaoService
     // Recupera viações com lógica de cache integrada para a Home.
     public function all(string $busca, string $status, string $ordem, string $dir): array
     {
-        // Verifica se é a consulta padrão da Home para usar o cache
         $isHomeQuery = ($busca === '' && $status === 'ativo' && $ordem === 'nome' && $dir === 'ASC');
 
         if ($isHomeQuery) {
             $cached = \getCachedData('viacoes_ativas');
             if ($cached !== null) {
-                // Converte os arrays do JSON de volta para objetos Viacao
                 return array_map(fn($row) => Viacao::fromRow($row), $cached);
             }
         }
 
-        // Se não usou cache ou o cache falhou (miss), busca no banco de dados
         $viacoes = $this->repo->all($busca, $status, $ordem, $dir);
 
-        // Se for a consulta da home, salva no cache para as próximas requisições
         if ($isHomeQuery) {
-            // Converte os objetos Viacao para array simples antes de salvar no JSON
             $dataToCache = array_map(fn($v) => (array) $v, $viacoes);
             \setCachedData('viacoes_ativas', $dataToCache);
         }
@@ -73,7 +68,6 @@ final class ViacaoService
         ]);
 
         $this->historico->log($id, 'Criado', "Viação '{$nome}' cadastrada.");
-
         // Limpa o cache após criar uma nova viação
         \invalidateCache('viacoes_ativas');
 
@@ -121,17 +115,20 @@ final class ViacaoService
     public function delete(int $id): void
     {
         $viacao = $this->repo->find($id);
-        if ($viacao) {
-            $this->repo->delete($id);
-            $this->historico->log($id, 'Excluido', "Viação '{$viacao->nome}' foi excluída.");
 
-            if ($viacao->logo && file_exists(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo)) {
-                unlink(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo);
-            }
-
-            // Limpa o cache após excluir uma viação
-            \invalidateCache('viacoes_ativas');
+        if (!$viacao) {
+            return;
         }
+
+        $this->repo->delete($id);
+        $this->historico->log($id, 'Excluido', "Viação '{$viacao->nome}' foi excluída.");
+
+        if ($viacao->logo && file_exists(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo)) {
+            unlink(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo);
+        }
+
+        // Limpa o cache após excluir uma viação
+        \invalidateCache('viacoes_ativas');
     }
 
     // Processamento interno de arquivos de imagem.

@@ -16,9 +16,10 @@ final class ViacaoValidator
 
         if ($nome === '' || $url === '' || $cidade === '') {
             $errors[] = 'Preencha todos os campos obrigatórios.';
+            return $errors;
         }
 
-        if ($url !== '' && !filter_var($url, FILTER_VALIDATE_URL)) {
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
             $errors[] = 'Forneça uma URL válida (ex: https://site.com).';
         }
 
