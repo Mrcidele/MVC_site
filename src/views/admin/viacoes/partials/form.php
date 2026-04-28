@@ -25,30 +25,30 @@
 
         <div class="form-group">
             <label>Nome</label>
-            <input type="text" name="nome" value="<?= htmlspecialchars($old['nome']) ?>" required placeholder="Ex: Viação Cometa">
+            <input type="text" name="nome" value="<?= htmlspecialchars($old['nome'] ?? '') ?>" required placeholder="Ex: Viação Cometa">
         </div>
 
         <div class="form-group">
             <label>URL</label>
-            <input type="url" name="url" value="<?= htmlspecialchars($old['url']) ?>" required placeholder="Ex: https://viacaocometa.com.br">
+            <input type="url" name="url" value="<?= htmlspecialchars($old['url'] ?? '') ?>" required placeholder="Ex: https://viacaocometa.com.br">
         </div>
 
         <div class="form-group">
             <label>Cidade</label>
-            <input type="text" name="cidade" value="<?= htmlspecialchars($old['cidade']) ?>" required placeholder="Ex: São Paulo">
+            <input type="text" name="cidade" value="<?= htmlspecialchars($old['cidade'] ?? '') ?>" required placeholder="Ex: São Paulo">
         </div>
 
         <div class="form-group">
             <label>Status</label>
             <select name="status">
-                <option value="ativo" <?= $old['status'] === 'ativo' ? 'selected' : '' ?>>Ativo</option>
-                <option value="inativo" <?= $old['status'] === 'inativo' ? 'selected' : '' ?>>Inativo</option>
+                <option value="ativo" <?= ($old['status'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativo</option>
+                <option value="inativo" <?= ($old['status'] ?? '') === 'inativo' ? 'selected' : '' ?>>Inativo</option>
             </select>
         </div>
 
-        <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <div class="form-actions" style="margin-top: 30px; display: flex; gap: 10px;">
             <button type="submit" class="btn-primary">Salvar Viação</button>
-            <a href="/admin/viacoes" class="btn-nav" style="background: #e9ecef; color: #333; text-decoration: none;">Cancelar</a>
+            <a href="/admin/viacoes" class="btn-nav" style="background: #e9ecef; color: #333; text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancelar</a>
         </div>
     </form>
 </div>
