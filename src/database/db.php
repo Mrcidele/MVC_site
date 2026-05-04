@@ -28,7 +28,6 @@ function getPdo(): PDO
     return $pdo;
 }
 
-// Mantemos a função antiga para não quebrar
 function abrirConexao(): PDO {
     return getPdo();
 }

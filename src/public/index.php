@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Responsável por preparar o ambiente e disparar o roteador.
 
 // Define o ambiente atual (Mude para 'production' quando for colocar no ar)
-    define('APP_ENV', 'production');
+    define('APP_ENV', 'development');
 
 // Configuração de exibição nativa do PHP
 if (APP_ENV === 'development') {

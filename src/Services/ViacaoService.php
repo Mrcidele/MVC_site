@@ -131,24 +131,44 @@ final class ViacaoService
         \invalidateCache('viacoes_ativas');
     }
 
-    // Processamento interno de arquivos de imagem.
+// Processamento interno de arquivos de imagem.
     private function handleUpload(?array $file): ?string
     {
         if ($file === null || $file['error'] !== UPLOAD_ERR_OK) return null;
 
         $tmpName = $file['tmp_name'];
-        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
 
-        if (!in_array(mime_content_type($tmpName), $allowed, true)) {
+        // Evita spoofing de $_FILES
+        if (!is_uploaded_file($tmpName)) {
+            throw new Exception('Arquivo de upload inválido.');
+        }
+
+        // 2. Extrai o MIME Type real do arquivo
+        $mime = mime_content_type($tmpName);
+
+        // 3. Mapeia rigorosamente os MIME Types seguros para as extensões correspondentes
+        $allowedMimes = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/webp' => 'webp'
+        ];
+
+        // Se o tipo MIME não estiver no nosso mapa, barra a operação
+        if (!array_key_exists($mime, $allowedMimes)) {
             throw new Exception('Apenas imagens JPG, PNG ou WEBP são permitidas.');
         }
 
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $nomeLogo = uniqid('logo_') . '.' . $ext;
+        // 4. FORÇA a extensão baseada no MIME detectado.
+        $extensaoSegura = $allowedMimes[$mime];
+
+        $nomeLogo = uniqid('logo_') . '.' . $extensaoSegura;
         $dir = dirname(__DIR__, 2) . '/src/public/uploads/logos/';
 
         if (!is_dir($dir)) mkdir($dir, 0755, true);
-        move_uploaded_file($tmpName, $dir . $nomeLogo);
+
+        if (!move_uploaded_file($tmpName, $dir . $nomeLogo)) {
+            throw new Exception('Falha ao mover a imagem para o diretório.');
+        }
 
         return $nomeLogo;
     }
