@@ -9,5 +9,13 @@
       "src/database/db.php"
     ]
   },
-  "require": {}
+  "require-dev": {
+    "phpunit/phpunit": "^13.1"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  }
 }
+

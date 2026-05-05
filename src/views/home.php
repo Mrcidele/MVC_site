@@ -842,8 +842,7 @@
 
         .titulo {
             font-size: 1.8rem;
-            text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             display: block;
         }
 
@@ -895,6 +894,7 @@
             display: flex;
             justify-content: space-around;
             align-items: flex-start;
+            text-align: center;
             background-color: #151557;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
