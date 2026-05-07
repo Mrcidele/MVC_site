@@ -16,50 +16,98 @@
 </header>
 
 <main class="admin-main">
+
+    <div class="admin-card" style="margin-bottom: 20px;">
+        <form method="GET" action="/admin/historico" class="filter-form" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+
+            <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px;">
+                <label style="font-size: 12px; font-weight: bold; color: #666;">Pesquisar</label>
+                <input type="text" name="busca" placeholder="Viação, usuário ou detalhe..." value="<?= htmlspecialchars((string)($filtros['busca'] ?? '')) ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 12px; font-weight: bold; color: #666;">Ação</label>
+                <select name="acao" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+                    <option value="">Todas</option>
+                    <option value="criacao" <?= ($filtros['acao'] ?? '') === 'criacao' ? 'selected' : '' ?>>Criação</option>
+                    <option value="edicao" <?= ($filtros['acao'] ?? '') === 'edicao' ? 'selected' : '' ?>>Edição</option>
+                    <option value="exclusao" <?= ($filtros['acao'] ?? '') === 'exclusao' ? 'selected' : '' ?>>Exclusão</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-nav" style="background: #4e73df; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Filtrar</button>
+                <a href="/admin/historico" class="btn-nav" style="background: #858796; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; display: flex; align-items: center;">Limpar</a>
+            </div>
+
+        </form>
+    </div>
+
     <div class="admin-card" style="padding: 0;">
         <div class="table-responsive">
-            <table class="admin-table" style="min-width: 900px;">
+            <table class="admin-table" style="min-width: 1000px;">
                 <thead>
                 <tr>
                     <th width="80">ID Ref.</th>
+                    <th width="150">Usuário</th>
                     <th width="120">Ação</th>
                     <th>Detalhes / O que mudou</th>
                     <th width="180">Data e Hora</th>
                 </tr>
                 </thead>
                 <tbody>
+                <?php if (empty($historico)): ?>
+                    <tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhum registro encontrado.</td></tr>
+                <?php endif; ?>
+
                 <?php foreach ($historico as $log): ?>
                     <tr>
-                        <td><?= $log->viacaoId ? '#' . $log->viacaoId : '-' ?></td>
+                        <td><?= !empty($log['viacao_id']) ? '#' . $log['viacao_id'] : '-' ?></td>
+
                         <td>
-                            <?php $color = $log->acao === 'Excluido' ? '#dc3545' : ($log->acao === 'Criado' ? '#198754' : '#fd7e14'); ?>
-                            <span style="color: <?= $color ?>; font-weight: bold;"><?= htmlspecialchars($log->acao) ?></span>
+                            <strong><?= htmlspecialchars((string)($log['usuario_nome'] ?? 'Sistema')) ?></strong>
+                            <br><small style="color: #6c757d;">ID: #<?= $log['usuario_id'] ?? '?' ?></small>
                         </td>
+
                         <td>
                             <?php
-                            $detalhesDecode = json_decode($log->detalhes, true);
-                            if ($log->acao === 'Editado' && is_array($detalhesDecode)):
+                            $acao = $log['acao'] ?? '';
+                            $color = ($acao === 'exclusao' || $acao === 'Excluido') ? '#dc3545' :
+                                    (($acao === 'criacao' || $acao === 'Criado' || $acao === 'cadastro') ? '#198754' : '#fd7e14');
+                            ?>
+                            <span style="color: <?= $color ?>; font-weight: bold; text-transform: capitalize;">
+                                <?= htmlspecialchars((string)$acao) ?>
+                            </span>
+                        </td>
+
+                        <td>
+                            <?php
+                            $detalhesRaw = $log['detalhes'] ?? '';
+                            $detalhesDecode = json_decode((string)$detalhesRaw, true);
+
+                            if (($acao === 'edicao' || $acao === 'Editado' || $acao === 'edicao') && is_array($detalhesDecode)):
                                 ?>
-                                <table class="log-table" style="width: 100%; font-size: 13px;">
+                                <table class="log-table" style="width: 100%; font-size: 13px; border-collapse: collapse;">
                                     <thead>
-                                    <tr><th>Campo</th><th>De</th><th>Para</th></tr>
+                                    <tr style="border-bottom: 1px solid #eee;"><th align="left">Campo</th><th align="left">De</th><th align="left">Para</th></tr>
                                     </thead>
                                     <tbody>
-                                    <?php foreach ($detalhesDecode as $mudanca): ?>
+                                    <?php foreach ($detalhesDecode as $campo => $mudanca): ?>
                                         <tr>
-                                            <td style="font-weight: bold;"><?= htmlspecialchars($mudanca['campo']) ?></td>
-                                            <td style="color: #dc3545; text-decoration: line-through;"><?= htmlspecialchars($mudanca['de']) ?></td>
-                                            <td style="color: #198754;"><?= htmlspecialchars($mudanca['para']) ?></td>
+                                            <td style="font-weight: bold;"><?= htmlspecialchars((string)($mudanca['campo'] ?? $campo)) ?></td>
+                                            <td style="color: #dc3545; text-decoration: line-through;"><?= htmlspecialchars((string)($mudanca['de'] ?? '')) ?></td>
+                                            <td style="color: #198754;"><?= htmlspecialchars((string)($mudanca['para'] ?? '')) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             <?php else: ?>
-                                <?= htmlspecialchars($log->detalhes) ?>
+                                <?= htmlspecialchars((string)$detalhesRaw) ?>
                             <?php endif; ?>
                         </td>
+
                         <td style="color: #6c757d; font-size: 14px;">
-                            <?= date('d/m/Y H:i:s', strtotime($log->dataHora)) ?>
+                            <?= date('d/m/Y H:i:s', strtotime((string)($log['data_hora'] ?? 'now'))) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

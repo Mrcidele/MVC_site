@@ -2,37 +2,69 @@
 declare(strict_types=1);
 namespace App\Repositories;
 
-use App\Models\Historico;
 use PDO;
 
-
-// Repositório de Auditoria: Gerencia o log de eventos do sistema.
-final class HistoricoRepository
+class HistoricoRepository
 {
-    private PDO $pdo;
+    private PDO $db;
 
-    public function __construct(?PDO $pdo = null)
+    public function __construct(?PDO $db = null)
     {
-        $this->pdo = $pdo ?? \getPdo();
+        $this->db = $db ?? \getPdo();
     }
 
-    // Recupera todos os registros de auditoria em ordem cronológica inversa.
-    public function all(): array
+    /**
+     * Registra uma nova ação no histórico.
+     * Chamado pelo ViacaoService ao criar, editar ou excluir.
+     */
+    public function log(int $viacaoId, string $acao, string $detalhes, ?int $usuarioId = null): void
     {
-        $stmt = $this->pdo->query("SELECT * FROM viacoes_historico ORDER BY data_hora DESC");
-        return array_map(fn($row) => new Historico(
-            (int) $row['id'],
-            $row['viacao_id'] ? (int) $row['viacao_id'] : null,
-            $row['acao'],
-            $row['detalhes'],
-            $row['data_hora']
-        ), $stmt->fetchAll());
+        $stmt = $this->db->prepare("
+            INSERT INTO viacoes_historico (viacao_id, usuario_id, acao, detalhes) 
+            VALUES (:viacao_id, :usuario_id, :acao, :detalhes)
+        ");
+
+        $stmt->execute([
+            'viacao_id'  => $viacaoId,
+            'usuario_id' => $usuarioId,
+            'acao'       => $acao,
+            'detalhes'   => $detalhes
+        ]);
     }
 
-    // Registra um novo evento de auditoria no banco de dados.
-    public function log(?int $viacaoId, string $acao, string $detalhes): void
+    /**
+     * Busca o histórico com filtros (usado na listagem administrativa).
+     */
+    public function all(string $busca = '', string $acao = ''): array
     {
-        $stmt = $this->pdo->prepare("INSERT INTO viacoes_historico (viacao_id, acao, detalhes) VALUES (?, ?, ?)");
-        $stmt->execute([$viacaoId, $acao, $detalhes]);
+        $sql = "
+            SELECT 
+                h.*, 
+                u.nome as usuario_nome, 
+                v.nome as viacao_nome 
+            FROM viacoes_historico h
+            LEFT JOIN usuarios u ON h.usuario_id = u.id
+            LEFT JOIN viacoes v ON h.viacao_id = v.id
+            WHERE 1=1
+        ";
+
+        $params = [];
+
+        if ($busca !== '') {
+            $sql .= " AND (v.nome LIKE :busca OR h.detalhes LIKE :busca OR u.nome LIKE :busca)";
+            $params['busca'] = "%$busca%";
+        }
+
+        if ($acao !== '') {
+            $sql .= " AND h.acao = :acao";
+            $params['acao'] = $acao;
+        }
+
+        $sql .= " ORDER BY h.data_hora DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

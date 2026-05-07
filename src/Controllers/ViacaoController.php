@@ -4,109 +4,122 @@ namespace App\Controllers;
 
 use App\Core\View;
 use App\Services\ViacaoService;
+use App\Services\AuthService;
 use Exception;
 
-//Controller Administrativo para Gestão de Viações
+// Controller Administrativo para Gestão de Viações.
+// Objetivo: Receber as requisições HTTP (GET, POST), delegar o trabalho pesado
+// para a camada de Serviço (ViacaoService) e enviar o resultado para a View.
 final class ViacaoController
 {
-    private ViacaoService $viacoes;
+    private ViacaoService $service;
+    private AuthService $auth;
 
-    public function __construct(?ViacaoService $viacoes = null)
+    public function __construct()
     {
-        $this->viacoes = $viacoes ?? new ViacaoService();
+        $this->auth = new AuthService();
+
+        // TRAVA DE SEGURANÇA: Bloqueia acesso não autorizado
+        // Se a sessão de login for falsa, expulsa o usuário da área administrativa
+        if (!$this->auth->check()) {
+            header('Location: /login');
+            exit;
+        }
+
+        $this->service = new ViacaoService();
     }
 
-    //Listagem com filtros e ordenação
+    // Listagem principal de viações
     public function index(): void
     {
-        $busca = trim((string) ($_GET['nome'] ?? ''));
-        $status = trim((string) ($_GET['status'] ?? ''));
-        $ordem = trim((string) ($_GET['order'] ?? 'nome'));
-        $dir = trim((string) ($_GET['dir'] ?? 'ASC'));
+        // Captura os dados da URL (?nome=X&status=Y).
+        // O (string) garante que não quebraremos o código se for passado um array por engano.
+        $busca  = (string)($_GET['nome'] ?? '');
+        $status = (string)($_GET['status'] ?? '');
+        $ordem  = (string)($_GET['order'] ?? 'criado_em'); // Por padrão, lista os mais recentes primeiro
+        $dir    = (string)($_GET['dir'] ?? 'DESC');
 
+        // Chama a renderização da tela, injetando os dados que vieram do Service
         View::render('admin/viacoes/index', [
-            'viacoes' => $this->viacoes->all($busca, $status, $ordem, $dir),
+            'viacoes' => $this->service->all($busca, $status, $ordem, $dir),
             'filtros' => compact('busca', 'status', 'ordem', 'dir')
         ]);
     }
 
-    //Formulário de criação
+    // Carrega o formulário para adicionar uma nova viação
     public function create(): void
     {
         View::render('admin/viacoes/create', [
             'errors' => [],
-            'old' => ['nome' => '', 'url' => '', 'cidade' => '', 'status' => 'ativo']
+            'old' => ['nome' => '', 'url' => '', 'cidade' => '', 'status' => 'ativo'] // Evita erro de variável não definida na View
         ]);
     }
 
-    //Processa a criação (POST)
+    // Processa o envio do formulário de criação (Rota POST)
     public function store(): void
     {
         try {
-            $this->viacoes->create($_POST, $this->getUploadedLogo());
-
-            View::flash('success', "Viação cadastrada com sucesso!");
-            View::redirect('/admin/viacoes');
+            // Tenta criar passando os dados de texto ($_POST) e arquivos de imagem ($_FILES)
+            $this->service->create($_POST, $_FILES['logo'] ?? null);
+            header('Location: /admin/viacoes'); // Se der certo, volta pra lista
+            exit;
         } catch (Exception $e) {
+            // Se o Service lançar uma Exceção (erro de upload, validação, etc),
+            // captura o erro, divide a mensagem e devolve o usuário pro formulário
             View::render('admin/viacoes/create', [
                 'errors' => explode('|', $e->getMessage()),
-                'old' => $_POST
+                'old' => $_POST // Preenche os inputs com o que ele tinha digitado antes do erro
             ]);
-            return;
         }
     }
 
-    //Formulário de edição
+    // Carrega o formulário de edição já preenchido
     public function edit(int $id): void
     {
-        $viacao = $this->viacoes->find($id);
+        // Busca o objeto específico pelo ID passado na URL
+        $viacao = $this->service->find($id);
 
-        if ($viacao === null) {
-            http_response_code(404);
-            echo "Viação não encontrada.";
+        // Se tentarem editar um ID que não existe (ex: digitou na URL), redireciona
+        if (!$viacao) {
+            header('Location: /admin/viacoes');
             exit;
         }
 
         View::render('admin/viacoes/edit', [
             'viacao' => $viacao,
             'errors' => [],
-            'old' => ['nome' => $viacao->nome, 'url' => $viacao->url, 'cidade' => $viacao->cidade, 'status' => $viacao->status]
+            'old' => [
+                'nome' => $viacao->nome,
+                'url' => $viacao->url,
+                'cidade' => $viacao->cidade,
+                'status' => $viacao->status
+            ]
         ]);
     }
 
-    //Processa a atualização (PUT)
+    // Processa a atualização dos dados (Rota POST / PUT)
     public function update(int $id): void
     {
         try {
-            $this->viacoes->update($id, $_POST, $this->getUploadedLogo());
-
-            View::flash('success', "Viação atualizada com sucesso!");
-            View::redirect('/admin/viacoes');
+            $this->service->update($id, $_POST, $_FILES['logo'] ?? null);
+            header('Location: /admin/viacoes');
+            exit;
         } catch (Exception $e) {
-            $viacao = $this->viacoes->find($id);
-
+            $viacao = $this->service->find($id);
             View::render('admin/viacoes/edit', [
                 'viacao' => $viacao,
                 'errors' => explode('|', $e->getMessage()),
                 'old' => $_POST
             ]);
-            return;
         }
     }
 
-    //Remove uma viação (DELETE)
+    // Processa a exclusão de um registro (Rota DELETE)
     public function destroy(int $id): void
     {
-        $this->viacoes->delete($id);
-        View::flash('success', "Viação removida com sucesso!");
-        View::redirect('/admin/viacoes');
-    }
-
-    private function getUploadedLogo(): ?array
-    {
-        if (!isset($_FILES['logo']) || $_FILES['logo']['error'] === UPLOAD_ERR_NO_FILE) {
-            return null;
-        }
-        return $_FILES['logo'];
+        // Chama o serviço para apagar. A lógica de histórico de quem apagou fica oculta no Service.
+        $this->service->delete($id);
+        header('Location: /admin/viacoes');
+        exit;
     }
 }

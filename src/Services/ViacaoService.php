@@ -14,15 +14,18 @@ final class ViacaoService
     private ViacaoRepository $repo;
     private ViacaoValidator $validator;
     private HistoricoRepository $historico;
+    private AuthService $auth;
 
     public function __construct(
         ?ViacaoRepository $repo = null,
         ?ViacaoValidator $validator = null,
-        ?HistoricoRepository $historico = null
+        ?HistoricoRepository $historico = null,
+        ?AuthService $auth = null
     ) {
         $this->repo = $repo ?? new ViacaoRepository();
         $this->validator = $validator ?? new ViacaoValidator();
         $this->historico = $historico ?? new HistoricoRepository();
+        $this->auth = $auth ?? new AuthService(); // Injetando serviço de autenticação
     }
 
     // Recupera viações com lógica de cache integrada para a Home.
@@ -67,8 +70,9 @@ final class ViacaoService
             'logo'   => $this->handleUpload($fileLogo),
         ]);
 
-        $this->historico->log($id, 'Criado', "Viação '{$nome}' cadastrada.");
-        // Limpa o cache após criar uma nova viação
+        $usuarioId = $this->auth->getLoggedUserId();
+        $this->historico->log($id, 'Criado', "Viação '{$nome}' cadastrada.", $usuarioId);
+
         \invalidateCache('viacoes_ativas');
 
         return $id;
@@ -90,7 +94,6 @@ final class ViacaoService
             'status' => ($data['status'] ?? '') === 'inativo' ? 'inativo' : 'ativo',
         ];
 
-        // Mapeia o que mudou para salvar no histórico
         $mudancas = [];
         if ($old->nome !== $updateData['nome']) $mudancas[] = ['campo' => 'Nome', 'de' => $old->nome, 'para' => $updateData['nome']];
         if ($old->url !== $updateData['url']) $mudancas[] = ['campo' => 'URL', 'de' => $old->url, 'para' => $updateData['url']];
@@ -105,10 +108,10 @@ final class ViacaoService
         $this->repo->update($id, $updateData);
 
         if (!empty($mudancas)) {
-            $this->historico->log($id, 'Editado', json_encode($mudancas, JSON_UNESCAPED_UNICODE));
+            $usuarioId = $this->auth->getLoggedUserId();
+            $this->historico->log($id, 'Editado', json_encode($mudancas, JSON_UNESCAPED_UNICODE), $usuarioId);
         }
 
-        // Limpa o cache após editar uma viação
         \invalidateCache('viacoes_ativas');
     }
 
@@ -120,47 +123,43 @@ final class ViacaoService
             return;
         }
 
+        $usuarioId = $this->auth->getLoggedUserId();
+
+        // Dica: Logar antes de deletar a constraint (caso dependa disso na FK)
+        $this->historico->log($id, 'Excluido', "Viação '{$viacao->nome}' foi excluída.", $usuarioId);
         $this->repo->delete($id);
-        $this->historico->log($id, 'Excluido', "Viação '{$viacao->nome}' foi excluída.");
 
         if ($viacao->logo && file_exists(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo)) {
             unlink(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo);
         }
 
-        // Limpa o cache após excluir uma viação
         \invalidateCache('viacoes_ativas');
     }
 
-// Processamento interno de arquivos de imagem.
+    // Processamento interno de arquivos de imagem.
     private function handleUpload(?array $file): ?string
     {
         if ($file === null || $file['error'] !== UPLOAD_ERR_OK) return null;
 
         $tmpName = $file['tmp_name'];
 
-        // Evita spoofing de $_FILES
         if (!is_uploaded_file($tmpName)) {
             throw new Exception('Arquivo de upload inválido.');
         }
 
-        // 2. Extrai o MIME Type real do arquivo
         $mime = mime_content_type($tmpName);
 
-        // 3. Mapeia rigorosamente os MIME Types seguros para as extensões correspondentes
         $allowedMimes = [
             'image/jpeg' => 'jpg',
             'image/png'  => 'png',
             'image/webp' => 'webp'
         ];
 
-        // Se o tipo MIME não estiver no nosso mapa, barra a operação
         if (!array_key_exists($mime, $allowedMimes)) {
             throw new Exception('Apenas imagens JPG, PNG ou WEBP são permitidas.');
         }
 
-        // 4. FORÇA a extensão baseada no MIME detectado.
         $extensaoSegura = $allowedMimes[$mime];
-
         $nomeLogo = uniqid('logo_') . '.' . $extensaoSegura;
         $dir = dirname(__DIR__, 2) . '/src/public/uploads/logos/';
 

@@ -1,48 +1,52 @@
-<?php
-use App\Core\View;
-$flash = $flash ?? View::pullFlash();
-
-function sortLink(string $col, string $label, string $currentOrder, string $currentDir, array $filtros): string {
-    $newDir = ($currentOrder === $col && $currentDir === 'ASC') ? 'desc' : 'asc';
-    $params = array_merge($filtros, ['order' => $col, 'dir' => $newDir]);
-    $url = '?' . http_build_query($params);
-    $icon = $currentOrder === $col ? ($currentDir === 'ASC' ? ' ▲' : ' ▼') : ' ⇅';
-    return "<a href=\"$url\" class=\"sort-link\">$label<span style=\"font-size:10px; margin-left:5px;\">$icon</span></a>";
-}
-?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administração de Viações</title>
+    <title>Gerenciar Viações</title>
     <link rel="stylesheet" href="/admin.css">
+    <style>
+        .date-info { font-size: 11px; color: #6c757d; display: block; line-height: 1.2; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .status-ativo { background: #e1f7e1; color: #198754; }
+        .status-inativo { background: #fdeaea; color: #dc3545; }
+        .admin-table img { width: 50px; height: 50px; object-fit: contain; border-radius: 4px; border: 1px solid #eee; }
+    </style>
 </head>
 <body>
 
 <header class="admin-header">
-    <h1>Painel ADM - Viações</h1>
+    <h1>Gerenciar Viações</h1>
     <nav>
-        <a href="/" class="btn-nav">← Voltar ao Site</a>
+        <a href="/admin/viacoes/create" class="btn-nav" style="background: #198754;">+ Nova Viação</a>
         <a href="/admin/historico" class="btn-nav">Ver Histórico</a>
-        <a href="/admin/viacoes/create" class="btn-primary">+ Nova Viação</a>
+        <a href="/logout" class="btn-nav" style="background: #dc3545;">Sair</a>
     </nav>
 </header>
 
 <main class="admin-main">
-    <?php if ($flash): ?>
-        <div class="alert-success"><?= htmlspecialchars($flash['message']) ?></div>
-    <?php endif; ?>
+    <div class="admin-card" style="margin-bottom: 20px;">
+        <form method="GET" action="/admin/viacoes" class="filter-form" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
 
-    <div class="admin-card">
-        <form method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <input type="text" name="nome" value="<?= htmlspecialchars($filtros['busca'] ?? '') ?>" placeholder="Buscar..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 150px;">
-            <select name="status" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; min-width: 120px;">
-                <option value="">Status</option>
-                <option value="ativo" <?= ($filtros['status'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativos</option>
-                <option value="inativo" <?= ($filtros['status'] ?? '') === 'inativo' ? 'selected' : '' ?>>Inativos</option>
-            </select>
-            <button type="submit" class="btn-primary">Filtrar</button>
+            <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px;">
+                <label style="font-size: 12px; font-weight: bold; color: #666;">Pesquisar Viação</label>
+                <input type="text" name="nome" placeholder="Buscar por nome..." value="<?= htmlspecialchars((string)($filtros['busca'] ?? '')) ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 12px; font-weight: bold; color: #666;">Status</label>
+                <select name="status" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+                    <option value="">Todos</option>
+                    <option value="ativo" <?= ($filtros['status'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativos</option>
+                    <option value="inativo" <?= ($filtros['status'] ?? '') === 'inativo' ? 'selected' : '' ?>>Inativos</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-nav" style="background: #4e73df; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Filtrar</button>
+                <a href="/admin/viacoes" class="btn-nav" style="background: #858796; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; display: flex; align-items: center;">Limpar</a>
+            </div>
+
         </form>
     </div>
 
@@ -51,39 +55,55 @@ function sortLink(string $col, string $label, string $currentOrder, string $curr
             <table class="admin-table">
                 <thead>
                 <tr>
-                    <th width="60">Logo</th>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Cidade</th>
+                    <th>Logo</th>
+                    <th>Viação / Cidade</th>
                     <th>Status</th>
-                    <th>Ações</th>
+                    <th>Datas</th>
+                    <th width="150">Ações</th>
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($viacoes as $v): ?>
-                    <tr>
-                        <td>
-                            <?php if ($v->logo): ?>
-                                <img src="/uploads/logos/<?= htmlspecialchars($v->logo) ?>" width="40" height="40" style="border-radius:50%; object-fit:cover; border: 1px solid #eee;">
-                            <?php else: ?>
-                                <div style="width:40px; height:40px; background:#e9ecef; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#adb5bd;">N/A</div>
-                            <?php endif; ?>
-                        </td>
-                        <td><?= $v->id ?></td>
-                        <td><strong><?= htmlspecialchars($v->nome) ?></strong></td>
-                        <td><?= htmlspecialchars($v->cidade) ?></td>
-                        <td><span class="badge <?= $v->status ?>"><?= ucfirst($v->status) ?></span></td>
-                        <td>
-                            <div style="display:flex; gap: 5px;">
-                                <a href="/admin/viacoes/<?= $v->id ?>/edit" class="btn-edit">Editar</a>
-                                <form method="POST" action="/admin/viacoes/<?= $v->id ?>" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta viação?')">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn-delete">Excluir</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+                <?php if (empty($viacoes)): ?>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhuma viação cadastrada.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($viacoes as $v): ?>
+                        <tr>
+                            <td>
+                                <img src="<?= $v->logo ? '/uploads/logos/' . $v->logo : '/img/no-logo.png' ?>" alt="Logo">
+                            </td>
+                            <td>
+                                <strong><?= htmlspecialchars($v->nome) ?></strong><br>
+                                <small style="color: #666;"><?= htmlspecialchars($v->cidade) ?></small>
+                                <?php if($v->url): ?>
+                                    <br><a href="<?= htmlspecialchars($v->url) ?>" target="_blank" style="font-size: 10px; color: #4e73df; text-decoration: none;">URL da Viação ↗</a>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <span class="status-badge status-<?= strtolower($v->status) ?>">
+                                    <?= htmlspecialchars($v->status) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="date-info">
+                                    <strong>Criado:</strong> <?= $v->criado_em ? date('d/m/Y H:i', strtotime($v->criado_em)) : '-' ?>
+                                </span>
+                                <span class="date-info">
+                                    <strong>Editado:</strong> <?= $v->alterado_em ? date('d/m/Y H:i', strtotime($v->alterado_em)) : '-' ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <a href="/admin/viacoes/<?= $v->id ?>/edit" class="btn-nav" style="padding: 5px 10px; font-size: 12px; background: #f6c23e;">Editar</a>
+
+                                    <form action="/admin/viacoes/<?= $v->id ?>" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir?')">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn-nav" style="padding: 5px 10px; font-size: 12px; background: #e74a3b; border: none; cursor: pointer;">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
                 </tbody>
             </table>
         </div>

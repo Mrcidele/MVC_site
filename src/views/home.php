@@ -1502,10 +1502,10 @@
             <img src="/imagem/icon_atendimento-online_ajuda.svg" alt="">
             Central de Ajuda
         </a>
-        <a href="/login" class="entrar-login">
+        <a href="" class="entrar-login">
             <button class="btn-primary-default">Entrar</button>
         </a>
-        <a href="/admin/viacoes" class="painel_adm">
+        <a href="/login" class="painel_adm">
             <button class="btn-primary-acess">Acesso ADM </button>
         </a>
 
