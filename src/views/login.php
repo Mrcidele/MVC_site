@@ -38,7 +38,7 @@
         <button type="submit" class="btn-login">Entrar</button>
     </form>
 
-    <a href="/" class="back-link">&larr; Voltar para a Home</a>
+    <a href="/" class="back-link">Voltar para a Home</a>
 </div>
 
 </body>
