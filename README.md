@@ -1,4 +1,4 @@
-# 🚌 Sistema de Gestão de Viações (Código Kids)
+# 🚌 Sistema de Gestão de Viações
 
 > Aplicação web de nível empresarial desenvolvida em **PHP 8.4** com **Clean Architecture**, **MVC**, painel administrativo protegido e fluxo CRUD fortemente tipado com **DTOs**.
 

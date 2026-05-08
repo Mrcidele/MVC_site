@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
-/**
- * Data Transfer Object para Viação.
- * Centraliza e tipa os dados vindos da requisição.
- */
+
+ // Data Transfer Object para Viação.
+ // Centraliza e tipa os dados vindos da requisição.
+
 readonly class ViacaoDTO
 {
     public function __construct(
@@ -17,9 +17,9 @@ readonly class ViacaoDTO
         public ?array $logoFile = null
     ) {}
 
-    /**
-     * Factory method para criar o DTO a partir das globais do PHP.
-     */
+
+     // Factory method para criar o DTO a partir das globais do PHP.
+
     public static function fromRequest(array $postData, ?array $fileData): self
     {
         return new self(
@@ -27,14 +27,13 @@ readonly class ViacaoDTO
             url: trim($postData['url'] ?? ''),
             cidade: trim($postData['cidade'] ?? ''),
             status: ($postData['status'] ?? '') === 'inativo' ? 'inativo' : 'ativo',
-            // Validamos se o ficheiro de logo foi enviado corretamente
             logoFile: ($fileData && $fileData['error'] === UPLOAD_ERR_OK) ? $fileData : null
         );
     }
 
-    /**
-     * Converte os dados para array (útil para validadores e repositórios antigos).
-     */
+
+     // Converte os dados para array (útil para validadores e repositórios antigos).
+
     public function toArray(): array
     {
         return [
