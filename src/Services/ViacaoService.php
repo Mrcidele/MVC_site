@@ -125,7 +125,6 @@ final class ViacaoService
 
         $usuarioId = $this->auth->getLoggedUserId();
 
-        // Dica: Logar antes de deletar a constraint (caso dependa disso na FK)
         $this->historico->log($id, 'Excluido', "Viação '{$viacao->nome}' foi excluída.", $usuarioId);
         $this->repo->delete($id);
 
