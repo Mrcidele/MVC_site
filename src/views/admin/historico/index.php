@@ -94,9 +94,39 @@
                                     <tbody>
                                     <?php foreach ($detalhesDecode as $campo => $mudanca): ?>
                                         <tr>
-                                            <td style="font-weight: bold;"><?= htmlspecialchars((string)($mudanca['campo'] ?? $campo)) ?></td>
-                                            <td style="color: #dc3545; text-decoration: line-through;"><?= htmlspecialchars((string)($mudanca['de'] ?? '')) ?></td>
-                                            <td style="color: #198754;"><?= htmlspecialchars((string)($mudanca['para'] ?? '')) ?></td>
+                                            <td style="font-weight: bold; vertical-align: middle;"><?= htmlspecialchars((string)($mudanca['campo'] ?? $campo)) ?></td>
+
+                                            <td style="color: #dc3545; text-decoration: line-through; vertical-align: middle;">
+                                                <?php
+                                                $valorDe = (string)($mudanca['de'] ?? '');
+                                                if (strpos($valorDe, '[IMG]') === 0) {
+                                                    $imgNome = str_replace('[IMG]', '', $valorDe);
+                                                    if ($imgNome === 'Sem logo') {
+                                                        echo "<em>Sem logo</em>";
+                                                    } else {
+                                                        echo '<img src="/uploads/logos/' . htmlspecialchars($imgNome) . '" style="height: 40px; border-radius: 4px; object-fit: contain; filter: grayscale(100%); opacity: 0.7;">';
+                                                    }
+                                                } else {
+                                                    echo htmlspecialchars($valorDe);
+                                                }
+                                                ?>
+                                            </td>
+
+                                            <td style="color: #198754; vertical-align: middle;">
+                                                <?php
+                                                $valorPara = (string)($mudanca['para'] ?? '');
+                                                if (strpos($valorPara, '[IMG]') === 0) {
+                                                    $imgNome = str_replace('[IMG]', '', $valorPara);
+                                                    if ($imgNome === 'Sem logo') {
+                                                        echo "<em>Sem logo</em>";
+                                                    } else {
+                                                        echo '<img src="/uploads/logos/' . htmlspecialchars($imgNome) . '" style="height: 40px; border-radius: 4px; object-fit: contain; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+                                                    }
+                                                } else {
+                                                    echo htmlspecialchars($valorPara);
+                                                }
+                                                ?>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                     </tbody>

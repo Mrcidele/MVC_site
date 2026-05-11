@@ -107,7 +107,11 @@ final class ViacaoService
 
         if ($dto->logoFile !== null) {
             $updateData['logo'] = $this->handleUpload($dto->logoFile);
-            $mudancas[] = ['campo' => 'Logo', 'de' => 'Imagem anterior', 'para' => 'Nova imagem'];
+
+            $logoAntiga = $old->logo ? '[IMG]' . $old->logo : '[IMG]Sem logo';
+            $logoNova = $updateData['logo'] ? '[IMG]' . $updateData['logo'] : '[IMG]Sem logo';
+
+            $mudancas[] = ['campo' => 'Logo', 'de' => $logoAntiga, 'para' => $logoNova];
         }
 
         $this->repo->update($id, $updateData);
@@ -128,11 +132,17 @@ final class ViacaoService
         $usuarioId = $this->auth->getLoggedUserId();
         $this->historico->log($id, 'Excluido', "Viação '{$viacao->nome}' foi excluída.", $usuarioId);
 
-        $this->repo->delete($id);
+        // 1. Define o caminho correto da pasta de logos (mesma lógica do handleUpload)
+        $dir = dirname(__DIR__, 2) . '/src/public/uploads/logos/';
+        $caminhoArquivo = $dir . $viacao->logo;
 
-        if ($viacao->logo && file_exists(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo)) {
-            unlink(__DIR__ . '/../../public/uploads/logos/' . $viacao->logo);
+        // 2. Tenta apagar o arquivo físico ANTES ou DEPOIS de apagar do banco
+        if ($viacao->logo && file_exists($caminhoArquivo)) {
+            unlink($caminhoArquivo);
         }
+
+        // 3. Apaga o registro do banco de dados
+        $this->repo->delete($id);
 
         \invalidateCache('viacoes_ativas');
     }
