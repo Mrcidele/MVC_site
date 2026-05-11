@@ -44,6 +44,10 @@ use App\Core\Router;
 // Inicializa a sessão para suporte a Flash Messages e Autenticação
 session_start();
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $router = new Router();
 
 // Carrega a definição das rotas amigáveis

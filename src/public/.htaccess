@@ -2,3 +2,19 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
+<IfModule mod_headers.c>
+    # Previne Clickjacking (não deixa o site abrir em iframes de outros domínios)
+    Header set X-Frame-Options "SAMEORIGIN"
+
+    # Ativa o filtro XSS nativo do navegador
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Previne MIME-type sniffing (força o navegador a respeitar o Content-Type)
+    Header set X-Content-Type-Options "nosniff"
+
+    # Content Security Policy (Atenção: se imagens/scripts externos pararem de carregar, você precisará ajustar esta regra)
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+
+    # Controla o quanto de informação de navegação é enviada em links externos
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

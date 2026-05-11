@@ -47,6 +47,12 @@ final class ViacaoController
 
     public function store(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                // Log a tentativa de ataque aqui (prática de SOC)
+                die('Erro de segurança: Token CSRF inválido ou expirado.');
+            }
+        }
         try {
             // Conversão imediata para DTO
             $dto = ViacaoDTO::fromRequest($_POST, $_FILES['logo'] ?? null);
@@ -79,6 +85,12 @@ final class ViacaoController
 
     public function update(int $id): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                // Log a tentativa de ataque aqui (prática de SOC)
+                die('Erro de segurança: Token CSRF inválido ou expirado.');
+            }
+        }
         try {
             // Conversão imediata para DTO
             $dto = ViacaoDTO::fromRequest($_POST, $_FILES['logo'] ?? null);

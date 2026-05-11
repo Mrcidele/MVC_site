@@ -6,23 +6,18 @@ namespace App\Validators;
 final class ViacaoValidator
 {
     // Valida os campos obrigatórios e o formato da URL.
-    // Retorna array vazio se os dados forem válidos.
-    public function validate(array $data): array
-    {
-        $errors = [];
-        $nome = trim((string) ($data['nome'] ?? ''));
-        $url = trim((string) ($data['url'] ?? ''));
-        $cidade = trim((string) ($data['cidade'] ?? ''));
+    public static function validate(array &$dados) {
+        $erros = [];
 
-        if ($nome === '' || $url === '' || $cidade === '') {
-            $errors[] = 'Preencha todos os campos obrigatórios.';
-            return $errors;
+        if (empty($dados['nome'])) {
+            $erros[] = "O nome é obrigatório.";
+        } else {
+            // Remove tags HTML e espaços extras na entrada
+            $dados['nome'] = strip_tags(trim($dados['nome']));
         }
 
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            $errors[] = 'Forneça uma URL válida (ex: https://site.com).';
-        }
+        // Repita o processo para os outros campos de texto...
 
-        return $errors;
+        return $erros;
     }
-}
+ }

@@ -35,6 +35,12 @@ class LoginController
      */
     public function authenticate(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                // Log a tentativa de ataque aqui (prática de SOC)
+                die('Erro de segurança: Token CSRF inválido ou expirado.');
+            }
+        }
         $email = $_POST['email'] ?? '';
         $senha = $_POST['senha'] ?? '';
 

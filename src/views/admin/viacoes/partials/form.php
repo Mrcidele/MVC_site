@@ -9,6 +9,8 @@
 
     <form method="POST" action="<?= $isEdit ? '/admin/viacoes/'.$viacao->id : '/admin/viacoes' ?>" enctype="multipart/form-data">
 
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+
         <?php if ($isEdit): ?>
             <input type="hidden" name="_method" value="PUT">
         <?php endif; ?>

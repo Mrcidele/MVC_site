@@ -23,17 +23,39 @@ final class AuthService
     // Valida credenciais e salva os dados do usuário na sessão.
     public function login(string $email, string $senha): void
     {
+        $maxTentativas = 5;
+        $tempoBloqueio = 300; // 5 minutos em segundos
+
+        // 1. Verifica se a conta/IP já está no período de bloqueio
+        if (isset($_SESSION['login_tentativas']) && $_SESSION['login_tentativas'] >= $maxTentativas) {
+            $tempoPassado = time() - $_SESSION['ultimo_erro_login'];
+            if ($tempoPassado < $tempoBloqueio) {
+                $tempoRestante = ceil(($tempoBloqueio - $tempoPassado) / 60);
+                throw new Exception("Muitas tentativas falhas. Tente novamente em {$tempoRestante} minutos.");
+            } else {
+                // O tempo de punição acabou, zera as tentativas
+                $_SESSION['login_tentativas'] = 0;
+            }
+        }
+
+        // 2. Busca o usuário utilizando a propriedade correta ($this->repo)
         $usuario = $this->repo->findByEmail($email);
 
-        // Se o usuário não existir ou a senha estiver errada, bloqueia o acesso.
+        // 3. Verifica se o usuário existe e se a senha confere
         if (!$usuario || !password_verify($senha, $usuario->senha)) {
+            // Conta mais um erro no painel de tentativas
+            $_SESSION['login_tentativas'] = ($_SESSION['login_tentativas'] ?? 0) + 1;
+            $_SESSION['ultimo_erro_login'] = time();
+
             throw new Exception("E-mail ou senha inválidos.");
         }
 
-        // Guarda os dados básicos na sessão para manter o login ativo.
+        // 4. Sucesso! Zera as falhas e guarda os dados na sessão
+        $_SESSION['login_tentativas'] = 0;
         $_SESSION['usuario_id'] = $usuario->id;
         $_SESSION['usuario_nome'] = $usuario->nome;
     }
+    
 
     // Limpa a sessão e encerra a autenticação.
     public function logout(): void

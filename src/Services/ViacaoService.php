@@ -60,12 +60,16 @@ final class ViacaoService
      */
     public function create(ViacaoDTO $dto): int
     {
-        // Validação usando o array do DTO
-        $errors = $this->validator->validate($dto->toArray());
+        // 1. Extrai para uma variável primeiro
+        $data = $dto->toArray();
+
+        // 2. Passa a variável para o validador (ela será limpa/sanitizada aqui)
+        $errors = $this->validator->validate($data);
         if ($errors !== []) throw new Exception(implode('|', $errors));
 
-        $data = $dto->toArray();
+        // 3. Continua usando a variável $data que agora está sanitizada
         $data['logo'] = $this->handleUpload($dto->logoFile);
+        // ...
 
         $id = $this->repo->create($data);
 
@@ -77,18 +81,22 @@ final class ViacaoService
         return $id;
     }
 
+
     /**
      * Atualização utilizando DTO e detecção de mudanças imutáveis.
      */
-    public function update(int $id, ViacaoDTO $dto): void
+        public function update(int $id, ViacaoDTO $dto): void
     {
         $old = $this->repo->find($id);
         if (!$old) throw new Exception('Viação não encontrada.');
 
-        $errors = $this->validator->validate($dto->toArray());
+        // 1. Extrai para a variável
+        $updateData = $dto->toArray();
+
+        // 2. Passa a variável (evita o erro e aplica o strip_tags)
+        $errors = $this->validator->validate($updateData);
         if ($errors !== []) throw new Exception(implode('|', $errors));
 
-        $updateData = $dto->toArray();
         $mudancas = [];
 
         // Comparação de mudanças para o Log de Auditoria

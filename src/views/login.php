@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Acesso ADM</title>
     <style>
+        /* Seus estilos continuam iguais... */
         body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         .login-container h2 { text-align: center; margin-bottom: 20px; color: #333; }
@@ -27,6 +28,8 @@
     <?php endif; ?>
 
     <form action="/login" method="POST">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+
         <div class="form-group">
             <label for="email">E-mail</label>
             <input type="email" id="email" name="email" required placeholder="admin@admin.com">
