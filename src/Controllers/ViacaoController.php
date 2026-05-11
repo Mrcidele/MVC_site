@@ -49,6 +49,11 @@ final class ViacaoController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                die('Acesso negado: Falha na validação de segurança (CSRF Token).');
+            }
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
                 // Log a tentativa de ataque aqui (prática de SOC)
                 die('Erro de segurança: Token CSRF inválido ou expirado.');
             }
@@ -85,6 +90,11 @@ final class ViacaoController
 
     public function update(int $id): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                die('Acesso negado: Falha na validação de segurança (CSRF Token).');
+            }
+        }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
                 // Log a tentativa de ataque aqui (prática de SOC)

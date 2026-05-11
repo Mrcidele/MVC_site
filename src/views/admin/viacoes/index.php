@@ -30,7 +30,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px;">
                 <label style="font-size: 12px; font-weight: bold; color: #666;">Pesquisar Viação</label>
-                <input type="text" name="nome" placeholder="Buscar por nome..." value="<?= htmlspecialchars((string)($filtros['busca'] ?? '')) ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <input type="text" name="nome" placeholder="Buscar por nome..." value="<?= htmlspecialchars((string)($filtros['busca'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -69,18 +69,18 @@
                     <?php foreach ($viacoes as $v): ?>
                         <tr>
                             <td>
-                                <img src="<?= $v->logo ? '/uploads/logos/' . $v->logo : '/img/no-logo.png' ?>" alt="Logo">
+                                <img src="<?= $v->logo ? '/uploads/logos/' . htmlspecialchars($v->logo, ENT_QUOTES, 'UTF-8') : '/img/no-logo.png' ?>" alt="Logo">
                             </td>
                             <td>
-                                <strong><?= htmlspecialchars($v->nome) ?></strong><br>
-                                <small style="color: #666;"><?= htmlspecialchars($v->cidade) ?></small>
+                                <strong><?= htmlspecialchars($v->nome, ENT_QUOTES, 'UTF-8') ?></strong><br>
+                                <small style="color: #666;"><?= htmlspecialchars($v->cidade, ENT_QUOTES, 'UTF-8') ?></small>
                                 <?php if($v->url): ?>
-                                    <br><a href="<?= htmlspecialchars($v->url) ?>" target="_blank" style="font-size: 10px; color: #4e73df; text-decoration: none;">URL da Viação ↗</a>
+                                    <br><a href="<?= htmlspecialchars($v->url, ENT_QUOTES, 'UTF-8') ?>" target="_blank" style="font-size: 10px; color: #4e73df; text-decoration: none;">URL da Viação ↗</a>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <span class="status-badge status-<?= strtolower($v->status) ?>">
-                                    <?= htmlspecialchars($v->status) ?>
+                                <span class="status-badge status-<?= strtolower(htmlspecialchars($v->status, ENT_QUOTES, 'UTF-8')) ?>">
+                                    <?= htmlspecialchars($v->status, ENT_QUOTES, 'UTF-8') ?>
                                 </span>
                             </td>
                             <td>
@@ -96,6 +96,9 @@
                                     <a href="/admin/viacoes/<?= $v->id ?>/edit" class="btn-nav" style="padding: 5px 10px; font-size: 12px; background: #f6c23e;">Editar</a>
 
                                     <form action="/admin/viacoes/<?= $v->id ?>" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir?')">
+
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+
                                         <input type="hidden" name="_method" value="DELETE">
                                         <button type="submit" class="btn-nav" style="padding: 5px 10px; font-size: 12px; background: #e74a3b; border: none; cursor: pointer;">Excluir</button>
                                     </form>
