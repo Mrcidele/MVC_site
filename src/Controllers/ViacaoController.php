@@ -24,6 +24,18 @@ final class ViacaoController
         $this->service = new ViacaoService();
     }
 
+    // Método centralizado para verificação de segurança (SOC/Blue Team)
+    private function verifyCsrf(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Utilizamos o operador de coalescência na sessão para evitar warnings caso não exista
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+                // TODO: Adicionar Monolog aqui para registrar a tentativa de ataque no SIEM
+                die('Erro de segurança: Token CSRF inválido ou expirado.');
+            }
+        }
+    }
+
     public function index(): void
     {
         $busca  = (string)($_GET['nome'] ?? '');
@@ -47,19 +59,9 @@ final class ViacaoController
 
     public function store(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-                die('Acesso negado: Falha na validação de segurança (CSRF Token).');
-            }
-        }
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-                // Log a tentativa de ataque aqui (prática de SOC)
-                die('Erro de segurança: Token CSRF inválido ou expirado.');
-            }
-        }
+        $this->verifyCsrf();
+
         try {
-            // Conversão imediata para DTO
             $dto = ViacaoDTO::fromRequest($_POST, $_FILES['logo'] ?? null);
             $this->service->create($dto);
 
@@ -90,19 +92,9 @@ final class ViacaoController
 
     public function update(int $id): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-                die('Acesso negado: Falha na validação de segurança (CSRF Token).');
-            }
-        }
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-                // Log a tentativa de ataque aqui (prática de SOC)
-                die('Erro de segurança: Token CSRF inválido ou expirado.');
-            }
-        }
+        $this->verifyCsrf();
+
         try {
-            // Conversão imediata para DTO
             $dto = ViacaoDTO::fromRequest($_POST, $_FILES['logo'] ?? null);
             $this->service->update($id, $dto);
 
@@ -120,6 +112,9 @@ final class ViacaoController
 
     public function destroy(int $id): void
     {
+        // Poderíamos chamar o verifyCsrf() aqui também caso a requisição delete seja via POST method spoofing
+        $this->verifyCsrf();
+
         $this->service->delete($id);
         header('Location: /admin/viacoes');
         exit;

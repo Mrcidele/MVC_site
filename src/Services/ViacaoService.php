@@ -43,7 +43,7 @@ final class ViacaoService
         $viacoes = $this->repo->all($busca, $status, $ordem, $dir);
 
         if ($isHomeQuery) {
-            $dataToCache = array_map(fn($v) => (array) $v, $viacoes);
+            $dataToCache = array_map(fn($v) => $v->toArray(), $viacoes);
             \setCachedData('viacoes_ativas', $dataToCache);
         }
 
@@ -69,7 +69,6 @@ final class ViacaoService
 
         // 3. Continua usando a variável $data que agora está sanitizada
         $data['logo'] = $this->handleUpload($dto->logoFile);
-        // ...
 
         $id = $this->repo->create($data);
 

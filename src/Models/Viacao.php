@@ -27,4 +27,17 @@ class Viacao {
             $row['alterado_em'] ?? null
         );
     }
+
+    public function toArray(): array {
+        return [
+            'id' => $this->id,
+            'nome' => $this->nome,
+            'url' => $this->url,
+            'cidade' => $this->cidade,
+            'status' => $this->status,
+            'logo' => $this->logo,
+            'criado_em' => $this->criado_em,
+            'alterado_em' => $this->alterado_em
+        ];
+    }
 }
