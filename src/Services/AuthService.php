@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Repositories\UsuarioRepository;
 use Exception;
 
-final class AuthService
+class AuthService
 {
     private UsuarioRepository $repo;
 

@@ -10,35 +10,32 @@ class ViacaoTest extends TestCase
 {
     public function testDeveCriarInstanciaDeViacaoCorretamente()
     {
-        // Passando os 8 argumentos exigidos pelo construtor do Model
         $viacao = new Viacao(
             1,
             'Viação Exemplo',
             'https://exemplo.com.br',
             'São Paulo',
-            'Ativa',
+            'ativo',
             'logo.png',
             '2023-10-01 10:00:00',
             null
         );
 
-        // Testando o model diretamente
         $this->assertEquals(1, $viacao->id);
         $this->assertEquals('Viação Exemplo', $viacao->nome);
         $this->assertEquals('https://exemplo.com.br', $viacao->url);
         $this->assertEquals('São Paulo', $viacao->cidade);
-        $this->assertEquals('Ativa', $viacao->status);
+        $this->assertEquals('ativo', $viacao->status);
     }
 
     public function testDeveCriarViacaoAPartirDoMetodoFromRow()
     {
-        // Simulando o array que o PDO (banco de dados) retornaria
         $row = [
             'id' => 2,
             'nome' => 'Viação Teste PDO',
             'url' => 'https://teste.com',
             'cidade' => 'Rio de Janeiro',
-            'status' => 'Inativa',
+            'status' => 'inativo',
             'logo' => null,
             'criado_em' => '2023-10-01',
             'alterado_em' => null
@@ -50,5 +47,19 @@ class ViacaoTest extends TestCase
         $this->assertEquals(2, $viacao->id);
         $this->assertEquals('Viação Teste PDO', $viacao->nome);
         $this->assertNull($viacao->logo);
+    }
+
+    // NOVO TESTE: Garantir que a serialização para array funcione
+    public function testDeveConverterModelParaArrayCorretamente()
+    {
+        $viacao = new Viacao(3, 'Viação Array', 'https://array.com', 'Curitiba', 'ativo', null);
+
+        $array = $viacao->toArray();
+
+        $this->assertIsArray($array);
+        $this->assertArrayHasKey('id', $array);
+        $this->assertEquals(3, $array['id']);
+        $this->assertEquals('Viação Array', $array['nome']);
+        $this->assertNull($array['logo']);
     }
 }

@@ -7,7 +7,7 @@ use PDO;
 
 // Repositório: Responsável exclusivamente pela persistência de dados no MySQL.
 // NÃO deve conter regras de negócio (isso fica no Service), apenas Queries SQL.
-final class ViacaoRepository {
+class ViacaoRepository {
     private PDO $pdo;
 
     // Injeção de Dependência do PDO. Facilita testes (Mock) e centraliza a conexão.

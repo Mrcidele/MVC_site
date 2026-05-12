@@ -4,15 +4,15 @@ declare(strict_types=1);
 namespace Tests\Unit\Validators;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use App\Validators\ViacaoValidator;
 
 class ViacaoValidatorTest extends TestCase
 {
     public function testDeveRetornarErroSeCamposObrigatoriosEstiveremVazios()
     {
-        // Nome e cidade estão vazios de propósito
         $dadosInvalidos = [
-            'nome' => '',
+            'nome' => '   ',
             'url' => 'https://exemplo.com',
             'cidade' => ''
         ];
@@ -20,20 +20,22 @@ class ViacaoValidatorTest extends TestCase
         $validator = new ViacaoValidator();
         $erros = $validator->validate($dadosInvalidos);
 
-        // Afirmamos que o retorno é um array e não está vazio
         $this->assertIsArray($erros);
         $this->assertNotEmpty($erros);
-        // Verificamos se a mensagem de erro esperada está no array retornado
-        $this->assertContains('Preencha todos os campos obrigatórios.', $erros);
+        // Atualizado para a mensagem real que sua classe emite:
+        $this->assertContains('O nome da viação é obrigatório.', $erros);
+        $this->assertContains('A cidade é obrigatória.', $erros);
     }
 
-    public function testDeveRetornarErroSeUrlForInvalida()
+    // Atualizado para o formato moderno do PHPUnit 10/11+
+    #[DataProvider('provedorDeUrlsInvalidas')]
+    public function testDeveRetornarErroSeUrlForInvalida(string $urlInvalida)
     {
-        // Campos obrigatórios preenchidos, mas a URL não é um link válido
         $dadosInvalidos = [
             'nome' => 'Viação Exemplo',
-            'url' => 'isso-nao-e-uma-url',
-            'cidade' => 'São Paulo'
+            'url' => $urlInvalida,
+            'cidade' => 'São Paulo',
+            'status' => 'ativo' // Adicionado o status para não dar erro de status
         ];
 
         $validator = new ViacaoValidator();
@@ -41,22 +43,32 @@ class ViacaoValidatorTest extends TestCase
 
         $this->assertIsArray($erros);
         $this->assertNotEmpty($erros);
-        $this->assertContains('Forneça uma URL válida (ex: https://site.com).', $erros);
+        // Atualizado para a mensagem real da sua classe
+        $this->assertContains('A URL fornecida possui um formato inválido.', $erros);
+    }
+
+    public static function provedorDeUrlsInvalidas(): array
+    {
+        return [
+            ['isso-nao-e-uma-url'],
+            ['www.sem-http.com.br'],
+            ['http://'],
+            ['javascript:alert("xss")'],
+        ];
     }
 
     public function testDevePassarSemErrosQuandoDadosForemValidos()
     {
-        // Todos os dados certinhos
         $dadosValidos = [
             'nome' => 'Viação Exemplo',
             'url' => 'https://exemplo.com.br',
-            'cidade' => 'Curitiba'
+            'cidade' => 'Curitiba',
+            'status' => 'ativo' // Adicionado o status que estava faltando!
         ];
 
         $validator = new ViacaoValidator();
         $erros = $validator->validate($dadosValidos);
 
-        // Se os dados são válidos, o array de erros deve estar vazio
         $this->assertIsArray($erros);
         $this->assertEmpty($erros, 'O validador não deveria ter retornado erros.');
     }
