@@ -13,6 +13,17 @@ class LoginController
         $this->auth = new AuthService();
     }
 
+    // Método centralizado para verificação de segurança CSRF
+    private function verifyCsrf(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+                // Futuramente: Log a tentativa de ataque aqui (prática de SOC)
+                die('Erro de segurança: Token CSRF inválido ou expirado.');
+            }
+        }
+    }
+
     /**
      * Exibe a tela de login
      */
@@ -35,28 +46,20 @@ class LoginController
      */
     public function authenticate(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-                die('Acesso negado: Falha na validação de segurança (CSRF Token).');
-            }
-        }
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-                // Log a tentativa de ataque aqui (prática de SOC)
-                die('Erro de segurança: Token CSRF inválido ou expirado.');
-            }
-        }
+        // Chama a verificação de segurança uma única vez
+        $this->verifyCsrf();
+
         $email = $_POST['email'] ?? '';
         $senha = $_POST['senha'] ?? '';
 
         try {
-            // O AuthService utiliza password_verify para validar o hash do banco
+            // O AuthService utiliza password_verify para validar o hash do banco e aplica o Rate Limiting
             $this->auth->login($email, $senha);
 
             header('Location: /admin/viacoes');
             exit;
         } catch (\Exception $e) {
-            // Login falhou (senha errada ou e-mail inexistente)
+            // Login falhou (senha errada, e-mail inexistente ou bloqueio por tentativas)
             $_SESSION['login_erro'] = $e->getMessage();
             header('Location: /login');
             exit;
