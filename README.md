@@ -31,7 +31,7 @@ Este sistema foi desenvolvido para centralizar a gestão de empresas de transpor
 - **Proteção CSRF:** Geração e validação rigorosa de tokens de sessão dinâmicos (`hash_equals`) em todas as requisições de alteração de estado (POST, PUT, DELETE).
 - **Security Headers:** Blindagem no lado do cliente via `.htaccess` implementando Content-Security-Policy (CSP), X-Frame-Options (contra Clickjacking) e X-XSS-Protection.
 - **Prevenção XSS (Cross-Site Scripting):** Defesa em profundidade utilizando sanitização rigorosa de entradas (`strip_tags` nos Validators) e escape estrito de saídas (`htmlspecialchars` nas Views).
-- **Criptografia:** Senhas armazenadas com hash **Bcrypt** e verificadas via `password_verify`.
+- **Criptografia e Rehashing Dinâmico:** O sistema utiliza `password_verify` para validação, mas possui uma inteligência de atualização contínua (Blue Team). Caso a senha utilize um hash legado (como Bcrypt), o `AuthService` migra a credencial automaticamente e em tempo real para **Argon2id** (configurado com alto custo de memória e processamento multi-thread), blindando a base de dados contra ataques de força bruta modernos executados por GPUs/ASICs.
 
 ### 🛠️ Painel Administrativo (ADM)
 
@@ -51,7 +51,7 @@ Este sistema foi desenvolvido para centralizar a gestão de empresas de transpor
 
 O projeto segue a **Separação de Responsabilidades (SoC)**, garantindo um código manutenível e escalável:
 
-```
+```text
 Requisição HTTP
       │
       ▼
@@ -101,8 +101,8 @@ docker compose up --build -d
 
 **3. Aceda no navegador:**
 
-- Home: [http://localhost/](http://localhost/) ou [http://localhost:8081/](http://localhost:8081/)
-- Painel ADM: [http://localhost/login](http://localhost/login)
+- Home: `http://localhost/` ou `http://localhost:8081/`
+- Painel ADM: `http://localhost/login`
 
 ---
 
@@ -119,16 +119,16 @@ O script de automação (`init.sql`) cria o utilizador padrão automaticamente:
 
 ## 🗺️ Rotas da Aplicação
 
-| Método | Rota                  | Ação                                              | Controller               |
-|--------|-----------------------|---------------------------------------------------|--------------------------|
-| GET    | `/`                   | Página inicial (Fallback e Renderização de Destinos) | `HomeController@index`   |
-| GET    | `/login`              | Tela de Login                                     | `LoginController@index`  |
-| POST   | `/login`              | Processar Login (Com validação CSRF e Rate Limit) | `LoginController@login`  |
-| GET    | `/admin/viacoes`      | Listar viações                                    | `ViacaoController@index` |
-| POST   | `/admin/viacoes`      | Criar viação (Usa DTO e Validação)                | `ViacaoController@store` |
-| PUT    | `/admin/viacoes/{id}` | Atualizar viação (Usa DTO)                        | `ViacaoController@update` |
-| DELETE | `/admin/viacoes/{id}` | Excluir viação e ficheiros físicos                | `ViacaoController@destroy` |
-| GET    | `/admin/historico`    | Listar histórico visual de auditoria              | `HistoricoController@index` |
+| Método | Rota                  | Ação                                               | Controller                  |
+|--------|-----------------------|----------------------------------------------------|-----------------------------|
+| GET    | `/`                   | Página inicial (Fallback e Renderização de Destinos) | `HomeController@index`      |
+| GET    | `/login`              | Tela de Login                                      | `LoginController@index`     |
+| POST   | `/login`              | Processar Login (Com validação CSRF e Rate Limit)  | `LoginController@login`     |
+| GET    | `/admin/viacoes`      | Listar viações                                     | `ViacaoController@index`    |
+| POST   | `/admin/viacoes`      | Criar viação (Usa DTO e Validação)                 | `ViacaoController@store`    |
+| PUT    | `/admin/viacoes/{id}` | Atualizar viação (Usa DTO)                         | `ViacaoController@update`   |
+| DELETE | `/admin/viacoes/{id}` | Excluir viação e ficheiros físicos                 | `ViacaoController@destroy`  |
+| GET    | `/admin/historico`    | Listar histórico visual de auditoria               | `HistoricoController@index` |
 
 ---
 
@@ -146,7 +146,7 @@ docker compose exec app ./vendor/bin/phpunit
 
 ## ⚡ Cache Integrado
 
-Para otimizar o tempo de carregamento da Home, o sistema utiliza **cache em ficheiro JSON** para o catálogo (`viacoes_ativas.json`):
+Para otimizar o tempo de carregamento da Home, o sistema utiliza cache em ficheiro JSON para o catálogo (`viacoes_ativas.json`):
 
 - **Leitura:** `getCachedData()` recupera dados estáticos se o TTL (300s) for válido.
 - **Invalidação Sincronizada:** O cache é invalidado e regerado automaticamente pelo `ViacaoService` em qualquer operação de escrita (Criação, Edição ou Deleção), prevenindo a exibição de dados ou imagens inexistentes.

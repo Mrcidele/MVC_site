@@ -30,7 +30,6 @@ final class ViacaoController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Utilizamos o operador de coalescência na sessão para evitar warnings caso não exista
             if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
-                // TODO: Adicionar Monolog aqui para registrar a tentativa de ataque no SIEM
                 die('Erro de segurança: Token CSRF inválido ou expirado.');
             }
         }
