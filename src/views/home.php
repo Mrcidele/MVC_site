@@ -1470,7 +1470,6 @@
                 font-size: 13px;
                 padding: 15px;
             }
-        }
     </style>
 </head>
 <body>

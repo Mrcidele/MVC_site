@@ -39,3 +39,16 @@ CREATE TABLE IF NOT EXISTS viacoes_historico (
 INSERT INTO usuarios (nome, email, senha)
 VALUES ('Administrador', 'admin@admin.com', '$2y$12$Vzb0YtHtU3du8MzVrXw6SuWg.Fu/oOqQVU7zXE9i8CByO5ZHzON/G')
 ON DUPLICATE KEY UPDATE email=email;
+
+CREATE TABLE IF NOT EXISTS logs_acesso (
+                                           id INT AUTO_INCREMENT PRIMARY KEY,
+                                           email_tentativa VARCHAR(255) NOT NULL,
+                                           usuario_id INT NULL,
+                                           ip_origem VARCHAR(45) NOT NULL,
+                                           user_agent TEXT,
+                                           status ENUM('sucesso', 'falha', 'logout') NOT NULL,
+                                           detalhes TEXT,
+                                           data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                           INDEX idx_email (email_tentativa),
+                                           INDEX idx_status (status)
+);

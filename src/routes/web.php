@@ -3,6 +3,7 @@ use App\Controllers\HomeController;
 use App\Controllers\ViacaoController;
 use App\Controllers\HistoricoController;
 use App\Controllers\LoginController;
+use App\Controllers\LogAcessoController; // IMPORTAÇÃO NOVA PARA O SOC
 
 /** @var \App\Core\Router $router */
 
@@ -27,3 +28,6 @@ $router->delete('/admin/viacoes/{id}', [ViacaoController::class, 'destroy']);
 
 // --- ADMIN - HISTÓRICO (Protegido pelo construtor do HistoricoController) ---
 $router->get('/admin/historico', [HistoricoController::class, 'index']);
+
+// --- ADMIN - AUDITORIA SOC (LOGS DE ACESSO) ---
+$router->get('/admin/logs-acesso', [LogAcessoController::class, 'index']);
