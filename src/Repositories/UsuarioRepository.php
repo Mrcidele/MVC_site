@@ -27,14 +27,27 @@ class UsuarioRepository
 
         return Usuario::fromRow($row);
     }
+    public function updateSenha(int $id, string $novaSenhaHash): void
+    {
+        $stmt = $this->db->prepare("UPDATE usuarios SET senha = :senha WHERE id = :id");
+        $stmt->execute([
+            'senha' => $novaSenhaHash,
+            'id' => $id
+        ]);
+    }
 
     public function create(array $data): int
     {
+        // Em UsuarioRepository.php, no método create()
         $stmt = $this->db->prepare("INSERT INTO usuarios (nome, email, senha) VALUES (:nome, :email, :senha)");
         $stmt->execute([
             'nome'  => $data['nome'],
             'email' => $data['email'],
-            'senha' => password_hash($data['senha'], PASSWORD_DEFAULT)
+            'senha' => password_hash($data['senha'], PASSWORD_ARGON2ID, [
+                'memory_cost' => 65536,
+                'time_cost' => 4,
+                'threads' => 2
+            ])
         ]);
 
         return (int) $this->db->lastInsertId();

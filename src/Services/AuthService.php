@@ -50,12 +50,24 @@ class AuthService
             throw new Exception("E-mail ou senha inválidos.");
         }
 
+        // NOVO: Verifica se o hash antigo precisa ser atualizado para o Argon2id
+        $options = [
+            'memory_cost' => 65536,
+            'time_cost' => 4,
+            'threads' => 2
+        ];
+
+        if (password_needs_rehash($usuario->senha, PASSWORD_ARGON2ID, $options)) {
+            $novoHash = password_hash($senha, PASSWORD_ARGON2ID, $options);
+            $this->repo->updateSenha($usuario->id, $novoHash);
+        }
+
         // 4. Sucesso! Zera as falhas e guarda os dados na sessão
         $_SESSION['login_tentativas'] = 0;
         $_SESSION['usuario_id'] = $usuario->id;
         $_SESSION['usuario_nome'] = $usuario->nome;
     }
-    
+
 
     // Limpa a sessão e encerra a autenticação.
     public function logout(): void
