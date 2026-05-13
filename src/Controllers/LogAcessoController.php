@@ -28,7 +28,6 @@ class LogAcessoController
     {
         $logs = $this->logRepo->listarTodos();
 
-        // Assume-se que o método render espera o caminho da view e os dados
         View::render('admin/logs/index', [
             'logs' => $logs
         ]);
