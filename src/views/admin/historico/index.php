@@ -29,9 +29,9 @@
                 <label style="font-size: 12px; font-weight: bold; color: #666;">Ação</label>
                 <select name="acao" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
                     <option value="">Todas</option>
-                    <option value="criacao" <?= ($filtros['acao'] ?? '') === 'criacao' ? 'selected' : '' ?>>Criação</option>
-                    <option value="edicao" <?= ($filtros['acao'] ?? '') === 'edicao' ? 'selected' : '' ?>>Edição</option>
-                    <option value="exclusao" <?= ($filtros['acao'] ?? '') === 'exclusao' ? 'selected' : '' ?>>Exclusão</option>
+                    <option value="Criado" <?= ($filtros['acao'] ?? '') === 'Criado' ? 'selected' : '' ?>>Criação</option>
+                    <option value="Editado" <?= ($filtros['acao'] ?? '') === 'Editado' ? 'selected' : '' ?>>Edição</option>
+                    <option value="Excluido" <?= ($filtros['acao'] ?? '') === 'Excluido' ? 'selected' : '' ?>>Exclusão</option>
                 </select>
             </div>
 

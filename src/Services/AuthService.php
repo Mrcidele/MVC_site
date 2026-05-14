@@ -55,7 +55,7 @@ class AuthService
             throw new Exception("E-mail ou senha inválidos.");
         }
 
-        // 4. Migração dinâmica de Hash (Blue Team)
+        // 4. Migração dinâmica de Hash
         $options = ['memory_cost' => 65536, 'time_cost' => 4, 'threads' => 2];
         if (password_needs_rehash($usuario->senha, PASSWORD_ARGON2ID, $options)) {
             $novoHash = password_hash($senha, PASSWORD_ARGON2ID, $options);

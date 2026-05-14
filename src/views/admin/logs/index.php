@@ -26,7 +26,6 @@
 <main class="admin-main">
     <div class="admin-card" style="margin-bottom: 20px; border-left: 4px solid #343a40;">
         <h3 style="margin: 0; font-size: 16px; color: #333;">Monitorização do Perímetro de Autenticação</h3>
-        <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">Rastreio de tentativas de login, bloqueios e acessos válidos.</p>
     </div>
 
     <div class="admin-card" style="padding: 0;">
