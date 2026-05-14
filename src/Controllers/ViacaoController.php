@@ -8,6 +8,7 @@ use App\Services\ViacaoService;
 use App\Services\AuthService;
 use App\DTOs\ViacaoDTO;
 use Exception;
+use App\Repositories\HistoricoRepository;
 
 final class ViacaoController
 {
@@ -82,8 +83,13 @@ final class ViacaoController
             exit;
         }
 
+        // Busca o histórico específico desta viação
+        $historicoRepo = new HistoricoRepository();
+        $historico = $historicoRepo->findByViacaoId($id);
+
         View::render('admin/viacoes/edit', [
             'viacao' => $viacao,
+            'historico' => $historico, // Passa a variável para a view
             'errors' => [],
             'old' => (array) $viacao
         ]);

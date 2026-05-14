@@ -8,7 +8,7 @@ class LogAcessoRepository
 {
     private PDO $db;
 
-    // A mágica acontece aqui: permite que o construtor seja chamado sem argumentos (?PDO $db = null)
+    // Permite que o construtor seja chamado sem argumentos (?PDO $db = null)
     public function __construct(?PDO $db = null)
     {
         // Se a conexão não for passada, ele puxa a conexão singleton global do db.php
@@ -62,7 +62,6 @@ class LogAcessoRepository
 
         foreach ($headers as $header) {
             if (!empty($_SERVER[$header])) {
-                // Em casos de ataques roteados por vários proxies, os IPs vêm separados por vírgula.
                 // O primeiro IP da lista é SEMPRE o dispositivo original do utilizador.
                 $listaIps = explode(',', $_SERVER[$header]);
 

@@ -67,4 +67,22 @@ class HistoricoRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    //Busca o Historico de uma viação especifica
+    public function findByViacaoId(int $viacaoId): array
+    {
+        $sql = "
+            SELECT 
+                h.*, 
+                u.nome as usuario_nome
+            FROM viacoes_historico h
+            LEFT JOIN usuarios u ON h.usuario_id = u.id
+            WHERE h.viacao_id = :viacao_id
+            ORDER BY h.data_hora DESC
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['viacao_id' => $viacaoId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

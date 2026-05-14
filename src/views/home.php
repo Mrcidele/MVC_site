@@ -1487,7 +1487,7 @@
                 </a>
             </li>
             <li data-banner="hoteis" class="hoteis">
-                <a href="/hoteis/">
+                <a href="https://queropassagem.com.br/hoteis/">
                     <img src="/imagem/hotel.svg" alt="">
                     <p>Hotéis</p>
                     <span class="tagNovo">Novo!</span>
@@ -1497,7 +1497,7 @@
     </nav>
 
     <nav class="Direita">
-        <a href="/atendimento" class="central-ajuda">
+        <a href="https://queropassagem.com.br/atendimento" class="central-ajuda">
             <img src="/imagem/icon_atendimento-online_ajuda.svg" alt="">
             Central de Ajuda
         </a>
