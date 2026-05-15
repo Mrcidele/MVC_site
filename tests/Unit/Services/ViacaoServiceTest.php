@@ -16,8 +16,8 @@ class ViacaoServiceTest extends TestCase
     {
         // Mockamos todas as dependências que encostam no banco ou na sessão
         $mockRepo = $this->createMock(ViacaoRepository::class);
-        $mockHistorico = $this->createMock(HistoricoRepository::class);
-        $mockAuth = $this->createMock(AuthService::class);
+        $stubHistorico = $this->createStub(HistoricoRepository::class);
+        $stubAuth = $this->createStub(AuthService::class);
 
         $viacaoFake = new Viacao(99, 'Viação Fake', 'http://fake.com', 'Curitiba', 'ativo', null);
         $mockRepo->expects($this->once())
@@ -29,8 +29,8 @@ class ViacaoServiceTest extends TestCase
         $service = new ViacaoService(
             $mockRepo,
             null, // validator não encosta no banco, não precisa de mock
-            $mockHistorico,
-            $mockAuth
+            $stubHistorico,
+            $stubAuth
         );
 
         $resultado = $service->find(99);
@@ -43,15 +43,15 @@ class ViacaoServiceTest extends TestCase
     public function testDeveRetornarNullSeViacaoNaoExistir()
     {
         $mockRepo = $this->createMock(ViacaoRepository::class);
-        $mockHistorico = $this->createMock(HistoricoRepository::class);
-        $mockAuth = $this->createMock(AuthService::class);
+        $stubHistorico = $this->createStub(HistoricoRepository::class);
+        $stubAuth = $this->createStub(AuthService::class);
 
         $mockRepo->expects($this->once())
             ->method('find')
             ->with(10)
             ->willReturn(null);
 
-        $service = new ViacaoService($mockRepo, null, $mockHistorico, $mockAuth);
+        $service = new ViacaoService($mockRepo, null, $stubHistorico, $stubAuth);
         $resultado = $service->find(10);
 
         $this->assertNull($resultado);
