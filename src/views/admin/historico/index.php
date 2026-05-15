@@ -9,7 +9,7 @@
 <body>
 
 <header class="admin-header">
-    <h1>Histórico de Alterações</h1>
+    <h1>📜 Histórico de Alterações</h1>
     <nav>
         <a href="/admin/viacoes" class="btn-nav">← Voltar às Viações</a>
     </nav>
@@ -21,12 +21,12 @@
         <form method="GET" action="/admin/historico" class="filter-form" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
 
             <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px;">
-                <label style="font-size: 12px; font-weight: bold; color: #666;">Pesquisar</label>
+                <label style="font-size: 12px; font-weight: bold; color: #666;">🔎 Pesquisar</label>
                 <input type="text" name="busca" placeholder="Viação, usuário ou detalhe..." value="<?= htmlspecialchars((string)($filtros['busca'] ?? '')) ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-size: 12px; font-weight: bold; color: #666;">Ação</label>
+                <label style="font-size: 12px; font-weight: bold; color: #666;">🎬 Ação</label>
                 <select name="acao" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
                     <option value="">Todas</option>
                     <option value="Criado" <?= ($filtros['acao'] ?? '') === 'Criado' ? 'selected' : '' ?>>Criação</option>

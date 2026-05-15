@@ -16,7 +16,7 @@
 <body>
 
 <header class="admin-header">
-    <h1>Gerenciar Viações</h1>
+    <h1>🚍 Gerenciar Viações</h1>
     <nav>
         <a href="/admin/viacoes/create" class="btn-nav" style="background: #198754;">+ Nova Viação</a>
         <a href="/admin/historico" class="btn-nav">Ver Histórico</a>
@@ -32,12 +32,12 @@
         <form method="GET" action="/admin/viacoes" class="filter-form" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
 
             <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px;">
-                <label style="font-size: 12px; font-weight: bold; color: #666;">Pesquisar Viação</label>
+                <label style="font-size: 12px; font-weight: bold; color: #666;">🔎 Pesquisar Viação</label>
                 <input type="text" name="nome" placeholder="Buscar por nome..." value="<?= htmlspecialchars((string)($filtros['busca'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-size: 12px; font-weight: bold; color: #666;">Status</label>
+                <label style="font-size: 12px; font-weight: bold; color: #666;">✅ Status</label>
                 <select name="status" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
                     <option value="">Todos</option>
                     <option value="ativo" <?= ($filtros['status'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativos</option>
