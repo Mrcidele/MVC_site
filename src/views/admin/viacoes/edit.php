@@ -1,3 +1,6 @@
+<?php
+/** @var object|null $viacao */
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

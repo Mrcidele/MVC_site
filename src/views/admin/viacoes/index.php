@@ -23,7 +23,9 @@
 
         <a href="/admin/logs-acesso" class="btn-nav" style="background: #343a40; color: #ffffff;">Logs de Acesso</a>
 
-        <a href="/logout" class="btn-nav" style="background: #dc3545;">Sair</a>
+        <a href="/" class="btn-nav" style="background: #5e6569; color: #ffffff;">Voltar</a>
+
+        <a href="/logout" class="btn-nav" style="background: #dc3545;">Logout</a>
     </nav>
 </header>
 

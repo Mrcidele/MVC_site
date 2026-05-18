@@ -49,7 +49,7 @@ class ViacaoTest extends TestCase
         $this->assertNull($viacao->logo);
     }
 
-    // NOVO TESTE: Garantir que a serialização para array funcione
+    // Garantir que a serialização para array funcione
     public function testDeveConverterModelParaArrayCorretamente()
     {
         $viacao = new Viacao(3, 'Viação Array', 'https://array.com', 'Curitiba', 'ativo', null);

@@ -14,7 +14,6 @@ class LogAcessoRepository
         // Se a conexão não for passada, ele puxa a conexão singleton global do db.php
         $this->db = $db ?? \getPdo();
     }
-
     public function registrar(string $email, ?int $usuarioId, string $status, string $detalhes): void
     {
         $ip = $this->obterIpReal();

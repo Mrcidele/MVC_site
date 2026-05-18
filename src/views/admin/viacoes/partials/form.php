@@ -1,4 +1,6 @@
-<?php $isEdit = isset($viacao); ?>
+<?php
+/** @var object|null $viacao */
+$isEdit = isset($viacao); ?>
 <div class="admin-card" style="max-width: 600px; margin: 0 auto;">
 
     <?php if (!empty($errors)): ?>
