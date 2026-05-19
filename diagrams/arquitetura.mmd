@@ -1,0 +1,30 @@
+flowchart LR
+  A[HTTP Request] --> B[src/public/index.php]
+  B --> C[Router]
+  C --> D[Controllers]
+  D --> E[Services]
+  E --> F[Repositories]
+  F --> G[(MySQL)]
+  E --> H[Validators]
+  E --> I[DTOs]
+  D --> J[Views]
+  J --> K[HTML Response]
+
+  subgraph "Camada Web"
+    B
+    C
+    D
+    J
+  end
+
+  subgraph "Camada de Negocio"
+    E
+    H
+    I
+  end
+
+  subgraph "Camada de Dados"
+    F
+    G
+  end
+
